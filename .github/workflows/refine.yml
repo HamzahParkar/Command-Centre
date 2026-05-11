@@ -2,7 +2,7 @@ name: Weekly AI Refinement
  
 on:
   schedule:
-    - cron: '0 8 * * 0'  # Every Sunday at 8am UTC
+    - cron: '0 8 * * *'  # Every day at 8am UTC
   workflow_dispatch:       # Allows manual trigger from GitHub Actions tab
  
 jobs:
