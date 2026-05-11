@@ -1,171 +1,47 @@
-name: Weekly AI Refinement
- 
+name: Daily AI Refinement
+
 on:
   schedule:
-    - cron: '0 8 * * *'  # Every day at 8am UTC
-  workflow_dispatch:       # Allows manual trigger from GitHub Actions tab
- 
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+
 jobs:
   refine:
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
- 
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
- 
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
- 
-      - name: Refine with Qwen via OpenRouter
+
+      - name: Refine with Qwen
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-        run: |
-          node << 'EOF'
-          const fs = require('fs');
-          const https = require('https');
- 
-          const html = fs.readFileSync('index.html', 'utf8');
- 
-          const prompt = `You are an expert web developer refining a trading command centre web app called TradingWithPurpose.
- 
-Here is the current index.html:
- 
-${html}
- 
-Your job is to improve this file. Follow these priorities in order:
- 
-PRIORITY 1 — FIX THE TABS (most important):
-The app has 6 tabs: Pre-Market Review, Trade Sheet, Weekly Review, Monthly Review, Economic Calendar, Resources.
-The tab switching uses onclick="switchTab('id', this)" handlers and a switchTab() JavaScript function.
-The tabs are NOT working — clicking them does nothing. This must be fixed.
-The most likely cause is that Vite treats inline scripts as ES modules, making the functions not globally accessible.
-Fix this by ensuring all functions called from onclick handlers are properly accessible in the global scope.
-One approach: move all JS to a separate inline script with type="text/javascript" and ensure no module scope issues.
-Another approach: attach all event listeners programmatically using addEventListener after DOM loads instead of onclick attributes.
- 
-PRIORITY 2 — GENERAL IMPROVEMENTS:
-After fixing the tabs, identify and fix up to 3 additional improvements such as:
-- Bug fixes in the save/delete/load functionality
-- UX improvements (better labels, clearer buttons, helpful placeholders)
-- Mobile responsiveness improvements
-- Performance or accessibility improvements
- 
-RULES:
-- Return ONLY the complete improved HTML file
-- No markdown, no code blocks, no explanation
-- Do not remove any existing features
-- Keep the dark theme and all existing styling
-- Keep all localStorage functionality intact
-- Keep the IBM Plex Mono font and TRADINGWITHPURPOSE branding
-- The file must be valid standalone HTML that works when opened directly in a browser`;
- 
-          const payload = JSON.stringify({
-            model: 'qwen/qwen-2.5-coder-32b-instruct',
-            max_tokens: 16000,
-            messages: [
-              {
-                role: 'user',
-                content: prompt
-              }
-            ]
-          });
- 
-          const options = {
-            hostname: 'openrouter.ai',
-            path: '/api/v1/chat/completions',
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-              'HTTP-Referer': 'https://github.com/HamzahParkar/Command-Centre',
-              'X-Title': 'TradingWithPurpose Command Centre'
-            }
-          };
- 
-          const req = https.request(options, res => {
-            let data = '';
-            res.on('data', chunk => data += chunk);
-            res.on('end', () => {
-              try {
-                const response = JSON.parse(data);
-                console.log('API Response status:', res.statusCode);
-                
-                if (!response.choices || !response.choices[0]) {
-                  console.error('Unexpected response:', JSON.stringify(response));
-                  process.exit(1);
-                }
- 
-                let improved = response.choices[0].message.content.trim();
-                
-                // Strip markdown code blocks if model wrapped the response
-                if (improved.startsWith('```html')) {
-                  improved = improved.replace(/^```html\n?/, '').replace(/\n?```$/, '');
-                } else if (improved.startsWith('```')) {
-                  improved = improved.replace(/^```\n?/, '').replace(/\n?```$/, '');
-                }
- 
-                // Validate it looks like HTML
-                if (!improved.includes('<!DOCTYPE html>') && !improved.includes('<html')) {
-                  console.error('Response does not look like valid HTML');
-                  console.log('Response preview:', improved.substring(0, 500));
-                  process.exit(1);
-                }
- 
-                fs.writeFileSync('index.html', improved);
-                console.log('Refinement complete — index.html updated');
-              } catch (err) {
-                console.error('Failed to parse response:', err);
-                console.log('Raw response:', data.substring(0, 1000));
-                process.exit(1);
-              }
-            });
-          });
- 
-          req.on('error', err => {
-            console.error('Request failed:', err);
-            process.exit(1);
-          });
- 
-          req.write(payload);
-          req.end();
-          EOF
- 
+        run: node refine.js
+
       - name: Check if file changed
         id: check_changes
         run: |
           if git diff --quiet index.html; then
             echo "changed=false" >> $GITHUB_OUTPUT
-            echo "No changes made to index.html"
           else
             echo "changed=true" >> $GITHUB_OUTPUT
-            echo "Changes detected in index.html"
           fi
- 
+
       - name: Create Pull Request
         if: steps.check_changes.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: 'AI refinement — tab fix + weekly improvements'
-          title: '🤖 AI Refinement — Tab Fix + Improvements'
-          body: |
-            ## Automated Weekly Refinement by Qwen
- 
-            ### What was fixed this run:
-            - Tab navigation fix (Priority 1)
-            - Additional UX/bug improvements
- 
-            ### How to review:
-            1. Check the Files Changed tab to see exactly what was modified
-            2. If it looks good — click Merge
-            3. Vercel will automatically redeploy within 30 seconds
- 
-            ---
-            *Generated automatically by the Weekly AI Refinement GitHub Action*
+          commit-message: 'AI refinement — daily improvements'
+          title: '🤖 Daily AI Refinement'
+          body: 'Automated improvements by Qwen. Review the Files Changed tab then click Merge to deploy.'
           branch: ai-refinement
           delete-branch: true
