@@ -3,7 +3,9 @@ const https = require('https');
 
 const html = fs.readFileSync('index.html', 'utf8');
 
-const prompt = 'You are an expert web developer refining a trading command centre web app called TradingWithPurpose. Here is the current index.html:\n\n' + html + '\n\nYour job is to improve this file. PRIORITY 1 - FIX THE TABS: The app has 6 tabs. Tab switching uses onclick handlers calling switchTab() function. Tabs are NOT working. Fix by ensuring all functions are globally accessible - use type="text/javascript" on the script tag and attach event listeners after DOM loads. PRIORITY 2 - Fix up to 3 additional bugs or UX improvements. RULES: Return ONLY the complete improved HTML file. No markdown, no code blocks, no explanation. Keep dark theme, IBM Plex Mono font, localStorage functionality and TRADINGWITHPURPOSE branding intact.';
+const claudeMd = fs.existsSync('CLAUDE.md') ? fs.readFileSync('CLAUDE.md', 'utf8') : '';
+
+const prompt = 'You are an expert web developer. Read this project briefing carefully before making any changes:\n\n' + claudeMd + '\n\nHere is the current index.html:\n\n' + html + '\n\nFollow the briefing exactly. Fix the issues in priority order. Return ONLY the complete improved HTML file. No markdown, no code blocks, no explanation.';
 
 const payload = JSON.stringify({
   model: 'qwen/qwen-2.5-coder-32b-instruct',
