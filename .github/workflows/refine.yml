@@ -1,0 +1,76 @@
+name: Weekly AI Refinement
+
+on:
+  schedule:
+    - cron: '0 8 * * 0'  # Every Sunday at 8am
+  workflow_dispatch:       # Also lets you trigger it manually
+
+jobs:
+  refine:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Analyse and refine with Claude
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          node -e "
+          const fs = require('fs');
+          const https = require('https');
+
+          const html = fs.readFileSync('index.html', 'utf8');
+
+          const payload = JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 4096,
+            messages: [{
+              role: 'user',
+              content: \`You are refining a trading command centre web app. Here is the current index.html:\n\n\${html}\n\nIdentify the top 3 improvements to make. Focus on: bug fixes, UX improvements, performance. Make the improvements directly to the HTML. Return ONLY the complete improved HTML file with no explanation or markdown.\`
+            }]
+          });
+
+          const options = {
+            hostname: 'api.anthropic.com',
+            path: '/v1/messages',
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': process.env.ANTHROPIC_API_KEY,
+              'anthropic-version': '2023-06-01'
+            }
+          };
+
+          const req = https.request(options, res => {
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => {
+              const response = JSON.parse(data);
+              const improved = response.content[0].text;
+              fs.writeFileSync('index.html', improved);
+              console.log('Refinement complete');
+            });
+          });
+
+          req.write(payload);
+          req.end();
+          "
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'AI refinement — weekly improvements'
+          title: '🤖 Weekly AI Refinement'
+          body: 'Automated improvements suggested by Claude. Review before merging.'
+          branch: ai-refinement
