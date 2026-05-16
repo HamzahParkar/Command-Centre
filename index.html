@@ -292,11 +292,11 @@ textarea.lg { min-height: 120px; }
 <!-- Tabs -->
 <div class="tabs">
   <button class="tab active" onclick="switchTab('premarket',this)">Pre-Market Review</button>
-  <button class="tab" onclick="switchTab('tradesheet',this)">02 · Trade Sheet</button>
-  <button class="tab" onclick="switchTab('weekly',this)">03 · Weekly Review</button>
-  <button class="tab" onclick="switchTab('monthly',this)">04 · Monthly Review</button>
-  <button class="tab" onclick="switchTab('calendar',this)">05 · Economic Calendar</button>
-  <button class="tab" onclick="switchTab('resources',this)">06 · Resources</button>
+  <button class="tab" onclick="switchTab('tradesheet',this)">Trade Sheet</button>
+  <button class="tab" onclick="switchTab('weekly',this)">Weekly Review</button>
+  <button class="tab" onclick="switchTab('monthly',this)">Monthly Review</button>
+  <button class="tab" onclick="switchTab('news',this)">Market News</button>
+  <button class="tab" onclick="switchTab('resources',this)">Resources</button>
 </div>
 
 <!-- ══════════════════════════════════════════════ -->
@@ -330,23 +330,12 @@ textarea.lg { min-height: 120px; }
     </div>
   </div>
 
-  <!-- Calendar & Risks -->
+  <!-- Calendar & Risks — Live Synced -->
   <div class="card">
-    <div class="card-title">Calendar Events & Key Market Risks</div>
-    <div class="grid2">
-      <div class="field">
-        <label>Key Calendar Events This Week</label>
-        <textarea id="pm-calendar" class="lg" placeholder="FOMC, CPI, NFP..."></textarea>
-      </div>
-      <div class="field">
-        <label>Key Market Risks</label>
-        <textarea id="pm-risks" class="lg" placeholder="Macro risks, geopolitical events..."></textarea>
-      </div>
-    </div>
-    <div class="field">
-      <label>Macro Market Regime Summary</label>
-      <textarea id="pm-macro" placeholder="Overall market environment, dominant narrative, risk-on / risk-off..."></textarea>
-    </div>
+    <div class="card-title">Key Market Events This Week</div>
+    <div id="econ-events-loading" style="font-family:var(--mono);font-size:9px;color:var(--muted);padding:12px 0;letter-spacing:0.1em;">Loading events...</div>
+    <div id="econ-events-container" style="display:none;"></div>
+    <div style="margin-top:10px;font-family:var(--mono);font-size:7px;color:var(--dim);letter-spacing:0.08em;">High-impact USD events · Auto-refreshed from Investing.com</div>
   </div>
 
   <!-- Markets Review -->
@@ -363,25 +352,25 @@ textarea.lg { min-height: 120px; }
       </thead>
       <tbody>
         <tr>
-          <td>BTC</td>
+          <td><input type="text" id="pm-mkt1-name" placeholder="BTC" style="font-weight:700;color:var(--amber);background:transparent;border:none;padding:4px 0;font-size:11px;"/></td>
           <td><input type="text" id="pm-btc-sup" placeholder="e.g. 72,500 / 68,000"/></td>
           <td><input type="text" id="pm-btc-res" placeholder="e.g. 78,000 / 82,000"/></td>
           <td><input type="text" id="pm-btc-act" placeholder="Bias / key setup forming"/></td>
         </tr>
         <tr>
-          <td>ETH</td>
+          <td><input type="text" id="pm-mkt2-name" placeholder="ETH" style="font-weight:700;color:var(--amber);background:transparent;border:none;padding:4px 0;font-size:11px;"/></td>
           <td><input type="text" id="pm-eth-sup" placeholder=""/></td>
           <td><input type="text" id="pm-eth-res" placeholder=""/></td>
           <td><input type="text" id="pm-eth-act" placeholder=""/></td>
         </tr>
         <tr>
-          <td>SOL</td>
+          <td><input type="text" id="pm-mkt3-name" placeholder="SOL" style="font-weight:700;color:var(--amber);background:transparent;border:none;padding:4px 0;font-size:11px;"/></td>
           <td><input type="text" id="pm-sol-sup" placeholder=""/></td>
           <td><input type="text" id="pm-sol-res" placeholder=""/></td>
           <td><input type="text" id="pm-sol-act" placeholder=""/></td>
         </tr>
         <tr>
-          <td>XRP</td>
+          <td><input type="text" id="pm-mkt4-name" placeholder="XRP" style="font-weight:700;color:var(--amber);background:transparent;border:none;padding:4px 0;font-size:11px;"/></td>
           <td><input type="text" id="pm-xrp-sup" placeholder=""/></td>
           <td><input type="text" id="pm-xrp-res" placeholder=""/></td>
           <td><input type="text" id="pm-xrp-act" placeholder=""/></td>
@@ -470,15 +459,12 @@ textarea.lg { min-height: 120px; }
   </div>
 
   <div class="trade-nav">
-    <select class="trade-selector" id="trade-selector" onchange="loadTrade(this.value)">
-      <option value="">— Select Trade —</option>
-    </select>
     <button class="trade-btn" onclick="newTrade()">+ NEW TRADE</button>
-    <button class="trade-btn del" onclick="deleteTrade()">DELETE</button>
-    <div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-left:auto;" id="trade-count"></div>
+    <button class="trade-btn" onclick="printTradeSheet()" style="color:var(--amber);border-color:#2a1a00;">🖨 PRINT</button>
+    <button class="trade-btn" onclick="downloadTradeSheet()" style="color:var(--green);border-color:#0a3020;">↓ DOWNLOAD</button>
   </div>
 
-  <div id="trade-form" style="display:none;">
+  <div id="trade-form">
     <!-- Trade meta -->
     <div class="card">
       <div class="card-title">Trade Details</div>
@@ -506,15 +492,15 @@ textarea.lg { min-height: 120px; }
       <div class="card-title">1 · Plan vs Reality</div>
       <div class="question-block">
         <div class="question-label"><span class="q-num">1A</span>Did the chart show exactly what I planned for?</div>
-        <textarea id="ts-1a" class="sm"></textarea>
+        <textarea id="ts-1a" style="min-height:120px;"></textarea>
       </div>
       <div class="question-block">
         <div class="question-label"><span class="q-num">1B</span>What confluences I planned actually appeared?</div>
-        <textarea id="ts-1b" class="sm"></textarea>
+        <textarea id="ts-1b" style="min-height:120px;"></textarea>
       </div>
       <div class="question-block" style="margin-bottom:0;">
         <div class="question-label"><span class="q-num">1C</span>Did anything unexpected happen before or during entry?</div>
-        <textarea id="ts-1c" class="sm"></textarea>
+        <textarea id="ts-1c" style="min-height:120px;"></textarea>
       </div>
     </div>
 
@@ -522,15 +508,15 @@ textarea.lg { min-height: 120px; }
       <div class="card-title">2 · Entry Quality</div>
       <div class="question-block">
         <div class="question-label"><span class="q-num">2A</span>Was my entry at a technically sound location?</div>
-        <textarea id="ts-2a" class="sm"></textarea>
+        <textarea id="ts-2a" style="min-height:120px;"></textarea>
       </div>
       <div class="question-block">
         <div class="question-label"><span class="q-num">2B</span>Was there a better entry I missed?</div>
-        <textarea id="ts-2b" class="sm"></textarea>
+        <textarea id="ts-2b" style="min-height:120px;"></textarea>
       </div>
       <div class="question-block" style="margin-bottom:0;">
         <div class="question-label"><span class="q-num">2C</span>Did I wait for confirmation or jump early?</div>
-        <textarea id="ts-2c" class="sm"></textarea>
+        <textarea id="ts-2c" style="min-height:120px;"></textarea>
       </div>
     </div>
 
@@ -538,15 +524,15 @@ textarea.lg { min-height: 120px; }
       <div class="card-title">3 · Trade Management</div>
       <div class="question-block">
         <div class="question-label"><span class="q-num">3A</span>Did I follow my trade management plan (scaling, stops, profit targets)?</div>
-        <textarea id="ts-3a" class="sm"></textarea>
+        <textarea id="ts-3a" style="min-height:120px;"></textarea>
       </div>
       <div class="question-block">
         <div class="question-label"><span class="q-num">3B</span>Was my size adjustment based on a signal or emotion?</div>
-        <textarea id="ts-3b" class="sm"></textarea>
+        <textarea id="ts-3b" style="min-height:120px;"></textarea>
       </div>
       <div class="question-block" style="margin-bottom:0;">
         <div class="question-label"><span class="q-num">3C</span>Could I have managed risk better?</div>
-        <textarea id="ts-3c" class="sm"></textarea>
+        <textarea id="ts-3c" style="min-height:120px;"></textarea>
       </div>
     </div>
 
@@ -554,15 +540,15 @@ textarea.lg { min-height: 120px; }
       <div class="card-title">4 · Exit & Aftermath</div>
       <div class="question-block">
         <div class="question-label"><span class="q-num">4A</span>Was my exit based on plan or emotion?</div>
-        <textarea id="ts-4a" class="sm"></textarea>
+        <textarea id="ts-4a" style="min-height:120px;"></textarea>
       </div>
       <div class="question-block">
         <div class="question-label"><span class="q-num">4B</span>What happened right after I exited — did the market prove me right or wrong?</div>
-        <textarea id="ts-4b" class="sm"></textarea>
+        <textarea id="ts-4b" style="min-height:120px;"></textarea>
       </div>
       <div class="question-block" style="margin-bottom:0;">
         <div class="question-label"><span class="q-num">4C</span>Would a different exit method have improved the trade?</div>
-        <textarea id="ts-4c" class="sm"></textarea>
+        <textarea id="ts-4c" style="min-height:120px;"></textarea>
       </div>
     </div>
 
@@ -570,17 +556,13 @@ textarea.lg { min-height: 120px; }
       <div class="card-title">5 · Key Takeaway</div>
       <div class="question-block">
         <div class="question-label"><span class="q-num">5A</span>What is the single biggest improvement I can make for this exact setup?</div>
-        <textarea id="ts-5a"></textarea>
+        <textarea id="ts-5a" style="min-height:160px;"></textarea>
       </div>
       <div class="question-block" style="margin-bottom:0;">
         <div class="question-label"><span class="q-num">5B</span>Would I take this trade again under the same conditions?</div>
-        <textarea id="ts-5b" class="sm"></textarea>
+        <textarea id="ts-5b" style="min-height:120px;"></textarea>
       </div>
     </div>
-  </div>
-
-  <div id="trade-empty" style="text-align:center;padding:60px;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.1em;">
-    NO TRADES YET · CLICK + NEW TRADE TO BEGIN
   </div>
 
 </div>
@@ -596,29 +578,33 @@ textarea.lg { min-height: 120px; }
       <div class="section-title">WEEKLY PERFORMANCE REVIEW</div>
       <div class="section-sub">END OF WEEK · EVERY FRIDAY</div>
     </div>
-    <input type="date" id="wr-date" style="width:180px;"/>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <input type="date" id="wr-date" style="width:160px;"/>
+      <button class="trade-btn" onclick="printWeeklyReview()" style="color:var(--amber);border-color:#2a1a00;">🖨 PRINT</button>
+      <button class="trade-btn" onclick="downloadWeeklyReview()" style="color:var(--green);border-color:#0a3020;">↓ DOWNLOAD</button>
+    </div>
   </div>
 
   <div class="card">
     <div class="review-block">
       <div class="review-label"><span class="r-num">01</span>What did I do well this week?</div>
-      <textarea id="wr-1" class="lg"></textarea>
+      <textarea id="wr-1" style="min-height:160px;"></textarea>
     </div>
     <div class="review-block">
       <div class="review-label"><span class="r-num">02</span>What did I not do well?</div>
-      <textarea id="wr-2" class="lg"></textarea>
+      <textarea id="wr-2" style="min-height:160px;"></textarea>
     </div>
     <div class="review-block">
       <div class="review-label"><span class="r-num">03</span>Did I deviate from my trade plan / process? If yes, why?</div>
-      <textarea id="wr-3" class="lg"></textarea>
+      <textarea id="wr-3" style="min-height:160px;"></textarea>
     </div>
     <div class="review-block">
       <div class="review-label"><span class="r-num">04</span>What was the outcome of deviating from my trade plan / process?</div>
-      <textarea id="wr-4" class="lg"></textarea>
+      <textarea id="wr-4" style="min-height:160px;"></textarea>
     </div>
     <div class="review-block" style="margin-bottom:0;">
       <div class="review-label"><span class="r-num">05</span>How do I plan to improve for next week?</div>
-      <textarea id="wr-5" class="lg"></textarea>
+      <textarea id="wr-5" style="min-height:160px;"></textarea>
     </div>
   </div>
 
@@ -635,7 +621,11 @@ textarea.lg { min-height: 120px; }
       <div class="section-title">MONTHLY PERFORMANCE REVIEW</div>
       <div class="section-sub">END OF MONTH · DEEP DIVE</div>
     </div>
-    <input type="date" id="mr-date" style="width:180px;"/>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <input type="date" id="mr-date" style="width:160px;"/>
+      <button class="trade-btn" onclick="printMonthlyReview()" style="color:var(--amber);border-color:#2a1a00;">🖨 PRINT</button>
+      <button class="trade-btn" onclick="downloadMonthlyReview()" style="color:var(--green);border-color:#0a3020;">↓ DOWNLOAD</button>
+    </div>
   </div>
 
   <!-- Section 1 -->
@@ -643,15 +633,15 @@ textarea.lg { min-height: 120px; }
     <div class="card-title">1 · Process and Plan</div>
     <div class="question-block">
       <div class="question-label"><span class="q-num">1A</span>When did trading feel natural, calm, and fully in sync with my plan — and what conditions led to that?</div>
-      <textarea id="mr-1a" class="lg"></textarea>
+      <textarea id="mr-1a" style="min-height:160px;"></textarea>
     </div>
     <div class="question-block">
       <div class="question-label"><span class="q-num">1B</span>Where did I cut corners, skip steps or make impulsive decisions — and why?</div>
-      <textarea id="mr-1b" class="lg"></textarea>
+      <textarea id="mr-1b" style="min-height:160px;"></textarea>
     </div>
     <div class="question-block" style="margin-bottom:0;">
       <div class="question-label"><span class="q-num">1C</span>Which parts of my plan felt effortless to follow, and which felt forced or unrealistic?</div>
-      <textarea id="mr-1c" class="lg"></textarea>
+      <textarea id="mr-1c" style="min-height:160px;"></textarea>
     </div>
   </div>
 
@@ -660,15 +650,15 @@ textarea.lg { min-height: 120px; }
     <div class="card-title">2 · Emotions</div>
     <div class="question-block">
       <div class="question-label"><span class="q-num">2A</span>Which emotions showed up most often while trading — and what triggered them?</div>
-      <textarea id="mr-2a" class="lg"></textarea>
+      <textarea id="mr-2a" style="min-height:160px;"></textarea>
     </div>
     <div class="question-block">
       <div class="question-label"><span class="q-num">2B</span>Did I notice emotions building before I acted on them, or only after the trade?</div>
-      <textarea id="mr-2b" class="lg"></textarea>
+      <textarea id="mr-2b" style="min-height:160px;"></textarea>
     </div>
     <div class="question-block" style="margin-bottom:0;">
       <div class="question-label"><span class="q-num">2C</span>When I stayed calm and disciplined, what allowed me to do so?</div>
-      <textarea id="mr-2c" class="lg"></textarea>
+      <textarea id="mr-2c" style="min-height:160px;"></textarea>
     </div>
   </div>
 
@@ -677,15 +667,15 @@ textarea.lg { min-height: 120px; }
     <div class="card-title">3 · Discipline and Self Awareness</div>
     <div class="question-block">
       <div class="question-label"><span class="q-num">3A</span>How did I handle stress compared to last month?</div>
-      <textarea id="mr-3a" class="lg"></textarea>
+      <textarea id="mr-3a" style="min-height:160px;"></textarea>
     </div>
     <div class="question-block">
       <div class="question-label"><span class="q-num">3B</span>Did I take breaks, step away, or pause when I needed to — or did I push through and regret it?</div>
-      <textarea id="mr-3b" class="lg"></textarea>
+      <textarea id="mr-3b" style="min-height:160px;"></textarea>
     </div>
     <div class="question-block" style="margin-bottom:0;">
       <div class="question-label"><span class="q-num">3C</span>Are my routines helping me stay consistent, or do they need to change?</div>
-      <textarea id="mr-3c" class="lg"></textarea>
+      <textarea id="mr-3c" style="min-height:160px;"></textarea>
     </div>
   </div>
 
@@ -694,15 +684,15 @@ textarea.lg { min-height: 120px; }
     <div class="card-title">4 · Habits / Patterns</div>
     <div class="question-block">
       <div class="question-label"><span class="q-num">4A</span>Do I tend to break my rules under specific conditions — time of day, after a win, after a loss?</div>
-      <textarea id="mr-4a" class="lg"></textarea>
+      <textarea id="mr-4a" style="min-height:160px;"></textarea>
     </div>
     <div class="question-block">
       <div class="question-label"><span class="q-num">4B</span>Are the same mistakes appearing again, or am I improving in those areas?</div>
-      <textarea id="mr-4b" class="lg"></textarea>
+      <textarea id="mr-4b" style="min-height:160px;"></textarea>
     </div>
     <div class="question-block" style="margin-bottom:0;">
       <div class="question-label"><span class="q-num">4C</span>Which habits are becoming automatic — good or bad?</div>
-      <textarea id="mr-4c" class="lg"></textarea>
+      <textarea id="mr-4c" style="min-height:160px;"></textarea>
     </div>
   </div>
 
@@ -711,43 +701,86 @@ textarea.lg { min-height: 120px; }
     <div class="card-title">5 · Improvements</div>
     <div class="question-block">
       <div class="question-label"><span class="q-num">5A</span>Which one rule or behaviour will I commit to mastering fully — no exceptions?</div>
-      <textarea id="mr-5a" class="lg"></textarea>
+      <textarea id="mr-5a" style="min-height:160px;"></textarea>
     </div>
     <div class="question-block">
       <div class="question-label"><span class="q-num">5B</span>How will I recognise emotional trading earlier next month?</div>
-      <textarea id="mr-5b" class="lg"></textarea>
+      <textarea id="mr-5b" style="min-height:160px;"></textarea>
     </div>
     <div class="question-block" style="margin-bottom:0;">
       <div class="question-label"><span class="q-num">5C</span>How will I define a "successful month" without using profit or loss as the measure?</div>
-      <textarea id="mr-5c" class="lg"></textarea>
+      <textarea id="mr-5c" style="min-height:160px;"></textarea>
     </div>
   </div>
 
 </div>
 
 <!-- ══════════════════════════════════════════════ -->
-<!-- TAB 5 — ECONOMIC CALENDAR -->
+<!-- TAB 5 — MARKET NEWS -->
 <!-- ══════════════════════════════════════════════ -->
-<div class="tab-panel" id="panel-calendar">
+<div class="tab-panel" id="panel-news">
 
   <div class="section-hdr">
     <div class="section-num">05</div>
     <div class="section-info">
-      <div class="section-title">US ECONOMIC CALENDAR</div>
-      <div class="section-sub">LIVE · INVESTING.COM FEED</div>
+      <div class="section-title">MARKET NEWS</div>
+      <div class="section-sub">HIGH IMPACT · MACRO DRIVERS · LIVE FEED</div>
     </div>
+    <button class="trade-btn" onclick="loadNews()" style="color:var(--green);border-color:#0a3020;">↻ REFRESH</button>
   </div>
 
-  <div class="cal-wrap">
-    <iframe src="https://sslecal2.investing.com?columns=exc_flags,exc_currency,exc_importance,exc_actual,exc_forecast,exc_previous&features=datepicker,timezone&countries=5&calType=week&timeZone=55&lang=1" width="100%" height="600" frameborder="0" allowtransparency="true" marginwidth="0" marginheight="0"></iframe>
-    <div class="cal-note">Live economic calendar · Powered by Investing.com · Shows USD high-impact events by default</div>
+  <!-- Live News Feed -->
+  <div class="card" style="margin-bottom:14px;">
+    <div class="card-title">Live Market-Moving News</div>
+    <div id="news-loading" style="font-family:var(--mono);font-size:9px;color:var(--muted);padding:20px 0;letter-spacing:0.1em;text-align:center;">Loading latest news...</div>
+    <div id="news-container" style="display:none;"></div>
   </div>
 
+  <!-- Cryptopanic Feed -->
+  <div class="card" style="margin-bottom:14px;">
+    <div class="card-title">Crypto News Feed</div>
+    <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:0.08em;margin-bottom:10px;">High-impact crypto and macro news via CryptoPanic</div>
+    <iframe
+      src="https://cryptopanic.com/news/rss/"
+      style="width:100%;height:400px;border:1px solid var(--border);background:var(--surface);"
+      frameborder="0">
+    </iframe>
+  </div>
+
+  <!-- Key Sources -->
   <div class="card">
-    <div class="card-title">Calendar Notes</div>
-    <div class="field">
-      <label>Key Events To Watch This Week</label>
-      <textarea id="cal-notes" class="lg" placeholder="Note high-impact events and your plan around them..."></textarea>
+    <div class="card-title">Key News Sources</div>
+    <div class="links-grid">
+      <a class="link-card" href="https://www.federalreserve.gov/newsevents.htm" target="_blank">
+        <div class="link-arrow">↗</div>
+        <div class="link-name">Federal Reserve</div>
+        <div class="link-url">federalreserve.gov</div>
+      </a>
+      <a class="link-card" href="https://www.bls.gov/news.release/" target="_blank">
+        <div class="link-arrow">↗</div>
+        <div class="link-name">BLS — CPI / NFP Data</div>
+        <div class="link-url">bls.gov</div>
+      </a>
+      <a class="link-card" href="https://www.investing.com/economic-calendar/" target="_blank">
+        <div class="link-arrow">↗</div>
+        <div class="link-name">Economic Calendar</div>
+        <div class="link-url">investing.com</div>
+      </a>
+      <a class="link-card" href="https://cryptopanic.com" target="_blank">
+        <div class="link-arrow">↗</div>
+        <div class="link-name">CryptoPanic</div>
+        <div class="link-url">cryptopanic.com</div>
+      </a>
+      <a class="link-card" href="https://www.coindesk.com" target="_blank">
+        <div class="link-arrow">↗</div>
+        <div class="link-name">CoinDesk</div>
+        <div class="link-url">coindesk.com</div>
+      </a>
+      <a class="link-card" href="https://theblock.co" target="_blank">
+        <div class="link-arrow">↗</div>
+        <div class="link-name">The Block</div>
+        <div class="link-url">theblock.co</div>
+      </a>
     </div>
   </div>
 
@@ -833,7 +866,7 @@ function switchTab(id, el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('panel-' + id).classList.add('active');
   el.classList.add('active');
-  if (id === 'tradesheet') refreshTradeSelector();
+  if (id === 'news') loadNews();
 }
 
 // ── Env toggle ──
@@ -849,13 +882,268 @@ function updateDate() {
 }
 updateDate();
 
+// ── Market News ──
+function loadNews() {
+  const container = document.getElementById('news-container');
+  const loading = document.getElementById('news-loading');
+  loading.style.display = 'block';
+  container.style.display = 'none';
+
+  // High-impact events hardcoded with live links — these are the key recurring events
+  const keyEvents = [
+    { name: 'FOMC Meeting & Rate Decision', desc: 'Federal Reserve interest rate decision — highest market impact event', url: 'https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm', impact: 'CRITICAL' },
+    { name: 'CPI — Consumer Price Index', desc: 'US inflation data — major BTC and risk asset mover', url: 'https://www.bls.gov/cpi/', impact: 'HIGH' },
+    { name: 'Non-Farm Payrolls (NFP)', desc: 'US jobs report — first Friday of every month', url: 'https://www.bls.gov/news.release/empsit.nr0.htm', impact: 'HIGH' },
+    { name: 'PCE Inflation Data', desc: "Fed's preferred inflation measure — released monthly", url: 'https://www.bea.gov/data/personal-consumption-expenditures-price-index', impact: 'HIGH' },
+    { name: 'PPI — Producer Price Index', desc: 'Leading indicator for CPI — signals future inflation', url: 'https://www.bls.gov/ppi/', impact: 'MEDIUM' },
+    { name: 'GDP Growth Rate', desc: 'Quarterly US economic growth — major macro signal', url: 'https://www.bea.gov/data/gdp/gross-domestic-product', impact: 'MEDIUM' },
+    { name: 'Initial Jobless Claims', desc: 'Weekly unemployment — released every Thursday', url: 'https://www.dol.gov/ui/data.pdf', impact: 'MEDIUM' },
+    { name: 'ISM Manufacturing PMI', desc: 'Business activity survey — risk-on/off signal', url: 'https://www.ismworld.org/supply-management-news-and-reports/reports/ism-report-on-business/', impact: 'MEDIUM' },
+  ];
+
+  const impactColor = { CRITICAL: '#e05252', HIGH: '#f0a050', MEDIUM: '#3a7bd5' };
+
+  container.innerHTML = keyEvents.map(e => `
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);">
+      <div style="flex-shrink:0;padding:3px 8px;border-radius:2px;font-family:var(--mono);font-size:7px;letter-spacing:0.1em;font-weight:700;
+        background:${e.impact==='CRITICAL'?'#100707':e.impact==='HIGH'?'#100a00':'#07101a'};
+        color:${impactColor[e.impact]};border:1px solid ${e.impact==='CRITICAL'?'#2a0a0a':e.impact==='HIGH'?'#2a1a00':'#0a1a2a'};">
+        ${e.impact}
+      </div>
+      <div style="flex:1;">
+        <a href="${e.url}" target="_blank" style="font-family:var(--mono);font-size:11px;color:var(--text);text-decoration:none;font-weight:500;">${e.name} ↗</a>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:3px;">${e.desc}</div>
+      </div>
+    </div>
+  `).join('');
+
+  // Add live calendar embed below
+  container.innerHTML += `
+    <div style="margin-top:16px;">
+      <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:0.14em;margin-bottom:10px;">THIS WEEK'S HIGH-IMPACT USD EVENTS</div>
+      <iframe src="https://sslecal2.investing.com?columns=exc_flags,exc_currency,exc_importance,exc_actual,exc_forecast,exc_previous&features=datepicker,timezone&countries=5&calType=week&timeZone=55&lang=1"
+        width="100%" height="400" frameborder="0" style="border:1px solid var(--border);"></iframe>
+    </div>
+  `;
+
+  loading.style.display = 'none';
+  container.style.display = 'block';
+}
+
+// ── Economic events for pre-market ──
+function loadEconEvents() {
+  const container = document.getElementById('econ-events-container');
+  const loading = document.getElementById('econ-events-loading');
+
+  const keyEvents = [
+    { name: 'FOMC', impact: 'CRITICAL', url: 'https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm' },
+    { name: 'CPI', impact: 'HIGH', url: 'https://www.bls.gov/cpi/' },
+    { name: 'NFP', impact: 'HIGH', url: 'https://www.bls.gov/news.release/empsit.nr0.htm' },
+    { name: 'PCE', impact: 'HIGH', url: 'https://www.bea.gov/data/personal-consumption-expenditures-price-index' },
+    { name: 'PPI', impact: 'MEDIUM', url: 'https://www.bls.gov/ppi/' },
+    { name: 'GDP', impact: 'MEDIUM', url: 'https://www.bea.gov/data/gdp/gross-domestic-product' },
+    { name: 'Jobless Claims', impact: 'MEDIUM', url: 'https://www.dol.gov/ui/data.pdf' },
+    { name: 'ISM PMI', impact: 'MEDIUM', url: 'https://www.ismworld.org' },
+  ];
+
+  const impactColor = { CRITICAL: '#e05252', HIGH: '#f0a050', MEDIUM: '#3a7bd5' };
+
+  container.innerHTML = `
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+      ${keyEvents.map(e => `
+        <a href="${e.url}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;
+          background:${e.impact==='CRITICAL'?'#100707':e.impact==='HIGH'?'#100a00':'#07101a'};
+          border:1px solid ${e.impact==='CRITICAL'?'#2a0a0a':e.impact==='HIGH'?'#2a1a00':'#0a1a2a'};
+          border-radius:2px;text-decoration:none;">
+          <span style="font-family:var(--mono);font-size:10px;color:${impactColor[e.impact]};font-weight:700;">${e.name}</span>
+          <span style="font-family:var(--mono);font-size:7px;color:${impactColor[e.impact]};opacity:0.7;">${e.impact}</span>
+        </a>
+      `).join('')}
+    </div>
+    <iframe src="https://sslecal2.investing.com?columns=exc_flags,exc_currency,exc_importance,exc_actual,exc_forecast,exc_previous&features=datepicker,timezone&countries=5&calType=week&timeZone=55&lang=1"
+      width="100%" height="320" frameborder="0" style="border:1px solid var(--border);"></iframe>
+  `;
+
+  loading.style.display = 'none';
+  container.style.display = 'block';
+}
+
+// ── Trade sheet print/download ──
+function getTradeSheetHTML() {
+  const get = id => { const el = document.getElementById(id); return el ? (el.value || el.options?.[el.selectedIndex]?.text || '') : ''; };
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"/>
+  <title>Trade Sheet — ${get('ts-date')} ${get('ts-pair')}</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet"/>
+  <style>
+    body{font-family:'IBM Plex Mono',monospace;background:#f7f5f0;color:#0a0a0a;padding:40px;max-width:900px;margin:0 auto;font-size:11px;}
+    h1{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:0.06em;margin-bottom:4px;}
+    .brand{font-size:9px;letter-spacing:0.2em;color:#1a3a5c;margin-bottom:4px;}
+    .meta{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0;padding:14px;background:#fff;border:1px solid #d8d4cc;}
+    .meta-item .label{font-size:7px;color:#888;letter-spacing:0.14em;margin-bottom:4px;}
+    .meta-item .value{font-size:13px;font-weight:700;}
+    .section{margin-bottom:16px;border:1px solid #d8d4cc;overflow:hidden;}
+    .section-title{background:#1a3a5c;color:white;padding:8px 14px;font-size:9px;letter-spacing:0.16em;}
+    .question{padding:12px 14px;border-bottom:1px solid #eee;}
+    .question:last-child{border-bottom:none;}
+    .q-label{font-size:8px;color:#888;margin-bottom:6px;letter-spacing:0.08em;}
+    .q-answer{min-height:80px;background:#f7f5f0;border:1px solid #d8d4cc;padding:8px;font-size:11px;line-height:1.6;white-space:pre-wrap;}
+    .footer{margin-top:24px;padding-top:12px;border-top:2px solid #0a0a0a;display:flex;justify-content:space-between;font-size:8px;color:#888;}
+    @media print{body{padding:20px;background:white;}}
+  </style></head><body>
+  <div class="brand">TRADINGWITHPURPOSE</div>
+  <h1>TRADE SHEET</h1>
+  <div class="meta">
+    <div class="meta-item"><div class="label">DATE</div><div class="value">${get('ts-date')}</div></div>
+    <div class="meta-item"><div class="label">INSTRUMENT</div><div class="value">${get('ts-pair')}</div></div>
+    <div class="meta-item"><div class="label">DIRECTION</div><div class="value">${get('ts-direction')}</div></div>
+    <div class="meta-item"><div class="label">SETUP</div><div class="value">${get('ts-setup')}</div></div>
+    <div class="meta-item"><div class="label">ENTRY</div><div class="value">${get('ts-entry')}</div></div>
+    <div class="meta-item"><div class="label">STOP</div><div class="value">${get('ts-stop')}</div></div>
+    <div class="meta-item"><div class="label">TARGET</div><div class="value">${get('ts-target')}</div></div>
+    <div class="meta-item"><div class="label">RESULT</div><div class="value">${get('ts-result')}</div></div>
+  </div>
+  ${[
+    ['1 · Plan vs Reality', [['1A','Did the chart show exactly what I planned for?','ts-1a'],['1B','What confluences I planned actually appeared?','ts-1b'],['1C','Did anything unexpected happen before or during entry?','ts-1c']]],
+    ['2 · Entry Quality', [['2A','Was my entry at a technically sound location?','ts-2a'],['2B','Was there a better entry I missed?','ts-2b'],['2C','Did I wait for confirmation or jump early?','ts-2c']]],
+    ['3 · Trade Management', [['3A','Did I follow my trade management plan?','ts-3a'],['3B','Was my size adjustment based on a signal or emotion?','ts-3b'],['3C','Could I have managed risk better?','ts-3c']]],
+    ['4 · Exit & Aftermath', [['4A','Was my exit based on plan or emotion?','ts-4a'],['4B','What happened right after I exited?','ts-4b'],['4C','Would a different exit method have improved the trade?','ts-4c']]],
+    ['5 · Key Takeaway', [['5A','What is the single biggest improvement I can make for this exact setup?','ts-5a'],['5B','Would I take this trade again under the same conditions?','ts-5b']]],
+  ].map(([title, qs]) => `
+    <div class="section">
+      <div class="section-title">${title}</div>
+      ${qs.map(([num,q,id]) => `<div class="question"><div class="q-label">${num} · ${q}</div><div class="q-answer">${get(id)}</div></div>`).join('')}
+    </div>
+  `).join('')}
+  <div class="footer"><span>TRADINGWITHPURPOSE · TRADE SHEET · ${get('ts-date')}</span><span>1–1.5% RISK · 2R MIN · 10x ISOLATED</span></div>
+  </body></html>`;
+}
+
+function printTradeSheet() {
+  const w = window.open('', '_blank');
+  w.document.write(getTradeSheetHTML());
+  w.document.close();
+  w.onload = () => w.print();
+}
+
+function downloadTradeSheet() {
+  const date = document.getElementById('ts-date').value || 'trade';
+  const pair = document.getElementById('ts-pair').value || 'sheet';
+  const blob = new Blob([getTradeSheetHTML()], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `trade-sheet-${date}-${pair}.html`;
+  a.click();
+}
+
+// ── Weekly review print/download ──
+function getWeeklyHTML() {
+  const get = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"/>
+  <title>Weekly Review — ${get('wr-date')}</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet"/>
+  <style>
+    body{font-family:'IBM Plex Mono',monospace;background:#f7f5f0;color:#0a0a0a;padding:40px;max-width:900px;margin:0 auto;font-size:11px;}
+    h1{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:0.06em;margin-bottom:4px;}
+    .brand{font-size:9px;letter-spacing:0.2em;color:#1a3a5c;margin-bottom:4px;}
+    .date-line{font-size:10px;color:#888;margin-bottom:20px;}
+    .question{margin-bottom:20px;border:1px solid #d8d4cc;}
+    .q-label{background:#1a3a5c;color:white;padding:8px 14px;font-size:9px;letter-spacing:0.12em;}
+    .q-answer{min-height:160px;background:white;padding:14px;font-size:11px;line-height:1.8;white-space:pre-wrap;}
+    .footer{margin-top:24px;padding-top:12px;border-top:2px solid #0a0a0a;display:flex;justify-content:space-between;font-size:8px;color:#888;}
+    @media print{body{padding:20px;background:white;}}
+  </style></head><body>
+  <div class="brand">TRADINGWITHPURPOSE</div>
+  <h1>WEEKLY PERFORMANCE REVIEW</h1>
+  <div class="date-line">WEEK OF ${get('wr-date')}</div>
+  ${[
+    ['01 · What did I do well this week?','wr-1'],
+    ['02 · What did I not do well?','wr-2'],
+    ['03 · Did I deviate from my trade plan / process? If yes, why?','wr-3'],
+    ['04 · What was the outcome of deviating from my trade plan / process?','wr-4'],
+    ['05 · How do I plan to improve for next week?','wr-5'],
+  ].map(([q,id]) => `<div class="question"><div class="q-label">${q}</div><div class="q-answer">${get(id)}</div></div>`).join('')}
+  <div class="footer"><span>TRADINGWITHPURPOSE · WEEKLY REVIEW · ${get('wr-date')}</span><span>END OF WEEK REFLECTION</span></div>
+  </body></html>`;
+}
+
+function printWeeklyReview() {
+  const w = window.open('', '_blank');
+  w.document.write(getWeeklyHTML());
+  w.document.close();
+  w.onload = () => w.print();
+}
+
+function downloadWeeklyReview() {
+  const date = document.getElementById('wr-date').value || 'weekly';
+  const blob = new Blob([getWeeklyHTML()], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `weekly-review-${date}.html`;
+  a.click();
+}
+
+// ── Monthly review print/download ──
+function getMonthlyHTML() {
+  const get = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+  const sections = [
+    ['1 · Process and Plan', [['1A','When did trading feel natural, calm, and fully in sync with my plan?','mr-1a'],['1B','Where did I cut corners, skip steps or make impulsive decisions — and why?','mr-1b'],['1C','Which parts of my plan felt effortless to follow, and which felt forced or unrealistic?','mr-1c']]],
+    ['2 · Emotions', [['2A','Which emotions showed up most often while trading — and what triggered them?','mr-2a'],['2B','Did I notice emotions building before I acted on them, or only after the trade?','mr-2b'],['2C','When I stayed calm and disciplined, what allowed me to do so?','mr-2c']]],
+    ['3 · Discipline and Self Awareness', [['3A','How did I handle stress compared to last month?','mr-3a'],['3B','Did I take breaks, step away, or pause when I needed to?','mr-3b'],['3C','Are my routines helping me stay consistent, or do they need to change?','mr-3c']]],
+    ['4 · Habits / Patterns', [['4A','Do I tend to break my rules under specific conditions?','mr-4a'],['4B','Are the same mistakes appearing again, or am I improving in those areas?','mr-4b'],['4C','Which habits are becoming automatic — good or bad?','mr-4c']]],
+    ['5 · Improvements', [['5A','Which one rule or behaviour will I commit to mastering fully?','mr-5a'],['5B','How will I recognise emotional trading earlier next month?','mr-5b'],['5C','How will I define a successful month without using profit or loss as the measure?','mr-5c']]],
+  ];
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"/>
+  <title>Monthly Review — ${get('mr-date')}</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet"/>
+  <style>
+    body{font-family:'IBM Plex Mono',monospace;background:#f7f5f0;color:#0a0a0a;padding:40px;max-width:900px;margin:0 auto;font-size:11px;}
+    h1{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:0.06em;margin-bottom:4px;}
+    .brand{font-size:9px;letter-spacing:0.2em;color:#1a3a5c;margin-bottom:4px;}
+    .date-line{font-size:10px;color:#888;margin-bottom:20px;}
+    .section{margin-bottom:20px;}
+    .section-title{background:#1a3a5c;color:white;padding:8px 14px;font-size:9px;letter-spacing:0.16em;margin-bottom:0;}
+    .question{border:1px solid #d8d4cc;border-top:none;}
+    .q-label{font-size:8px;color:#888;padding:8px 14px;background:#f0ede6;letter-spacing:0.08em;border-bottom:1px solid #d8d4cc;}
+    .q-answer{min-height:160px;background:white;padding:14px;font-size:11px;line-height:1.8;white-space:pre-wrap;}
+    .footer{margin-top:24px;padding-top:12px;border-top:2px solid #0a0a0a;display:flex;justify-content:space-between;font-size:8px;color:#888;}
+    @media print{body{padding:20px;background:white;}}
+  </style></head><body>
+  <div class="brand">TRADINGWITHPURPOSE</div>
+  <h1>MONTHLY PERFORMANCE REVIEW</h1>
+  <div class="date-line">${get('mr-date')}</div>
+  ${sections.map(([title,qs]) => `
+    <div class="section">
+      <div class="section-title">${title}</div>
+      ${qs.map(([num,q,id]) => `<div class="question"><div class="q-label">${num} · ${q}</div><div class="q-answer">${get(id)}</div></div>`).join('')}
+    </div>
+  `).join('')}
+  <div class="footer"><span>TRADINGWITHPURPOSE · MONTHLY REVIEW · ${get('mr-date')}</span><span>END OF MONTH DEEP DIVE</span></div>
+  </body></html>`;
+}
+
+function printMonthlyReview() {
+  const w = window.open('', '_blank');
+  w.document.write(getMonthlyHTML());
+  w.document.close();
+  w.onload = () => w.print();
+}
+
+function downloadMonthlyReview() {
+  const date = document.getElementById('mr-date').value || 'monthly';
+  const blob = new Blob([getMonthlyHTML()], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `monthly-review-${date}.html`;
+  a.click();
+}
+
 // ── Save / Load ──
 const PM_FIELDS = [
-  'pm-date','pm-calendar','pm-risks','pm-macro',
-  'pm-btc-sup','pm-btc-res','pm-btc-act',
-  'pm-eth-sup','pm-eth-res','pm-eth-act',
-  'pm-sol-sup','pm-sol-res','pm-sol-act',
-  'pm-xrp-sup','pm-xrp-res','pm-xrp-act',
+  'pm-date','pm-macro',
+  'pm-mkt1-name','pm-btc-sup','pm-btc-res','pm-btc-act',
+  'pm-mkt2-name','pm-eth-sup','pm-eth-res','pm-eth-act',
+  'pm-mkt3-name','pm-sol-sup','pm-sol-res','pm-sol-act',
+  'pm-mkt4-name','pm-xrp-sup','pm-xrp-res','pm-xrp-act',
   'pm-osc-1wstoch','pm-osc-1dstoch','pm-osc-h4stoch',
   'pm-osc-1wrsi','pm-osc-1drsi','pm-osc-h4rsi',
   'pm-map-comments','pm-osc-comments',
@@ -1206,7 +1494,6 @@ function updateTradeVisibility() {
 }
 
 function newTrade() {
-  // Save current if open
   if (currentTradeIdx !== null) saveCurrentTrade();
   const t = {};
   TRADE_FIELDS.forEach(f => t[f] = '');
@@ -1215,11 +1502,11 @@ function newTrade() {
   trades.push(t);
   currentTradeIdx = trades.length - 1;
   saveTrades();
-  refreshTradeSelector();
-  document.getElementById('trade-selector').value = currentTradeIdx;
-  loadTradeFields();
-  document.getElementById('trade-form').style.display = 'block';
-  document.getElementById('trade-empty').style.display = 'none';
+  // Clear all fields for new trade
+  TRADE_FIELDS.forEach(f => {
+    const el = document.getElementById(f);
+    if (el) el.value = f === 'ts-direction' ? 'SHORT' : f === 'ts-date' ? t['ts-date'] : '';
+  });
 }
 
 function saveCurrentTrade() {
@@ -1285,11 +1572,12 @@ window.addEventListener('load', () => {
   document.getElementById('pm-date').value = new Date().toISOString().split('T')[0];
   loadFields(WR_FIELDS, 'twp-weekly');
   loadFields(MR_FIELDS, 'twp-monthly');
-  loadFields(CAL_FIELDS, 'twp-calendar');
   loadTrades();
-  refreshTradeSelector();
+  // Load econ events for pre-market tab
+  loadEconEvents();
 });
 </script>
 
 </body>
 </html>
+
