@@ -1018,10 +1018,24 @@ function loadEconEvents() {
   const year = now.getFullYear();
   const month = now.getMonth();
 
-  // Get start and end of current week (Mon–Sun)
-  const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1; // Mon=0
-  const weekStart = new Date(now); weekStart.setDate(now.getDate() - dayOfWeek); weekStart.setHours(0,0,0,0);
-  const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6); weekEnd.setHours(23,59,59,999);
+  // On Saturday (6) or Sunday (0), show NEXT week's events
+  const dayOfWeek = now.getDay();
+  const isWeekend = dayOfWeek === 6 || dayOfWeek === 0;
+
+  // Get start of current week (Mon)
+  const currentMonDay = now.getDay() === 0 ? 6 : now.getDay() - 1;
+  const thisWeekStart = new Date(now);
+  thisWeekStart.setDate(now.getDate() - currentMonDay);
+  thisWeekStart.setHours(0,0,0,0);
+
+  // If weekend, shift to next week
+  const weekStart = new Date(thisWeekStart);
+  if (isWeekend) weekStart.setDate(weekStart.getDate() + 7);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+  weekEnd.setHours(23,59,59,999);
+
+  const weekLabel = isWeekend ? 'NEXT WEEK' : 'THIS WEEK';
 
   function fmt(d) {
     return d.toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' });
@@ -1062,13 +1076,17 @@ function loadEconEvents() {
     .filter(e => e.date >= weekStart && e.date <= weekEnd)
     .sort((a, b) => a.date - b.date);
 
+  // Update card title to reflect which week
+  const titleEl = document.querySelector('#events-ticker')?.closest('.card')?.querySelector('.card-title');
+  if (titleEl) titleEl.textContent = `Key Market Events — ${weekLabel}`;
+
   const ticker = document.getElementById('events-ticker');
   if (!ticker) return;
 
   if (thisWeek.length === 0) {
     ticker.parentElement.innerHTML = `
       <div style="font-family:var(--mono);font-size:9px;color:var(--muted);padding:12px 16px;letter-spacing:0.08em;">
-        No major scheduled events this week — lighter macro week.
+        No major scheduled events ${isWeekend ? 'next' : 'this'} week — lighter macro week.
       </div>`;
     return;
   }
@@ -1889,3 +1907,4 @@ window.addEventListener('load', () => {
 
 </body>
 </html>
+
