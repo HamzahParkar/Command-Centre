@@ -9,19 +9,19 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #040810;
-  --surface: #070c10;
-  --surface2: #0a1018;
-  --surface3: #0d1520;
-  --border: #131e2a;
-  --border2: #1a2a3a;
-  --green: #00d4aa;
-  --blue: #3a7bd5;
-  --amber: #f0a050;
-  --red: #e05252;
-  --text: #dde4ed;
-  --muted: #4a5a6a;
-  --dim: #2a3a4a;
+  --bg: #1a1710;
+  --surface: #201d14;
+  --surface2: #262318;
+  --surface3: #2c281c;
+  --border: #35301f;
+  --border2: #433e28;
+  --green: #7ec98a;
+  --blue: #7aadcf;
+  --amber: #d4a84b;
+  --red: #c96b5a;
+  --text: #e8dfc0;
+  --muted: #7a7055;
+  --dim: #4a4535;
   --mono: 'IBM Plex Mono', monospace;
   --sans: 'IBM Plex Sans', sans-serif;
   --display: 'Bebas Neue', sans-serif;
@@ -42,7 +42,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 12px 24px;
-  background: #050a0e;
+  background: #181510;
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
@@ -59,19 +59,19 @@ body {
 
 @keyframes pulse {
   0%,100% { box-shadow: 0 0 6px var(--green); }
-  50% { box-shadow: 0 0 16px var(--green), 0 0 30px var(--green); }
+  50% { box-shadow: 0 0 16px var(--green), 0 0 26px var(--green); }
 }
 
-.brand { font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; color: var(--blue); }
+.brand { font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; color: var(--amber); }
 .topbar-date { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: 0.12em; }
 
 .save-btn {
-  background: #071a10; border: 1px solid #0a3020; color: var(--green);
+  background: #252015; border: 1px solid var(--border2); color: var(--green);
   font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em;
   padding: 6px 14px; cursor: pointer; transition: all 0.15s;
 }
-.save-btn:hover { background: #0a2418; }
-.save-btn.saved { color: var(--amber); border-color: #2a1a00; background: #100a00; }
+.save-btn:hover { background: var(--surface2); }
+.save-btn.saved { color: var(--amber); border-color: var(--amber); background: var(--surface2); }
 
 /* ── Tabs ── */
 .tabs {
@@ -91,7 +91,7 @@ body {
 }
 
 .tab:hover { color: var(--text); }
-.tab.active { color: var(--green); border-bottom-color: var(--green); }
+.tab.active { color: var(--amber); border-bottom-color: var(--amber); }
 
 /* ── Content ── */
 .content {
@@ -158,7 +158,7 @@ textarea.lg { min-height: 120px; }
 
 .card-title {
   font-family: var(--mono); font-size: 8px; letter-spacing: 0.18em;
-  color: var(--blue); text-transform: uppercase;
+  color: var(--amber); text-transform: uppercase;
   margin-bottom: 14px; padding-bottom: 8px;
   border-bottom: 1px solid var(--border);
 }
@@ -191,7 +191,7 @@ textarea.lg { min-height: 120px; }
   padding: 12px 14px; display: flex; align-items: center; gap: 10px;
   cursor: pointer; transition: all 0.15s; user-select: none;
 }
-.env-card.selected { background: #071a10; border-color: #0a3020; }
+.env-card.selected { background: #252015; border-color: var(--border2); }
 .env-card.selected .env-dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
 .env-dot {
   width: 10px; height: 10px; border-radius: 50%;
@@ -272,6 +272,19 @@ textarea.lg { min-height: 120px; }
   background: var(--surface2); border: 1px solid var(--border);
   padding: 3px 10px; font-size: 9px; color: var(--text);
 }
+
+/* ── News filters ── */
+.news-filter {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--muted); font-family: var(--mono); font-size: 8px;
+  letter-spacing: 0.14em; padding: 6px 12px; cursor: pointer;
+  transition: all 0.15s;
+}
+.news-filter:hover { color: var(--text); border-color: var(--border2); }
+.active-filter { background: var(--surface2) !important; color: var(--amber) !important; border-color: var(--border2) !important; }
+.news-item { padding: 14px 16px; border-bottom: 1px solid var(--border); transition: background 0.15s; }
+.news-item:last-child { border-bottom: none; }
+.news-item:hover { background: var(--surface2); }
 </style>
 </head>
 <body>
@@ -330,12 +343,18 @@ textarea.lg { min-height: 120px; }
     </div>
   </div>
 
-  <!-- Calendar & Risks — Live Synced -->
-  <div class="card">
-    <div class="card-title">Key Market Events This Week</div>
-    <div id="econ-events-loading" style="font-family:var(--mono);font-size:9px;color:var(--muted);padding:12px 0;letter-spacing:0.1em;">Loading events...</div>
-    <div id="econ-events-container" style="display:none;"></div>
-    <div style="margin-top:10px;font-family:var(--mono);font-size:7px;color:var(--dim);letter-spacing:0.08em;">High-impact USD events · Auto-refreshed from Investing.com</div>
+  <!-- Auto-scrolling Events Ticker -->
+  <div class="card" style="padding:0;overflow:hidden;margin-bottom:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);">
+      <div class="card-title" style="margin-bottom:0;border-bottom:none;padding-bottom:0;">Key Market Events</div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div style="width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s ease-in-out infinite;"></div>
+        <span style="font-family:var(--mono);font-size:7px;color:var(--muted);letter-spacing:0.12em;">LIVE</span>
+      </div>
+    </div>
+    <div style="position:relative;overflow:hidden;height:44px;background:var(--surface2);">
+      <div id="events-ticker" style="display:flex;align-items:center;height:100%;white-space:nowrap;position:absolute;will-change:transform;"></div>
+    </div>
   </div>
 
   <!-- Markets Review -->
@@ -472,10 +491,7 @@ textarea.lg { min-height: 120px; }
         <div class="field"><label>Date</label><input type="date" id="ts-date"/></div>
         <div class="field"><label>Instrument</label><input type="text" id="ts-pair" placeholder="BTCUSDT"/></div>
         <div class="field"><label>Direction</label>
-          <select id="ts-direction">
-            <option>SHORT</option>
-            <option>LONG</option>
-          </select>
+          <input type="text" id="ts-direction" placeholder="SHORT / LONG"/>
         </div>
         <div class="field"><label>Setup Name</label><input type="text" id="ts-setup" placeholder="HTF Breakdown Short"/></div>
       </div>
@@ -724,64 +740,36 @@ textarea.lg { min-height: 120px; }
     <div class="section-num">05</div>
     <div class="section-info">
       <div class="section-title">MARKET NEWS</div>
-      <div class="section-sub">HIGH IMPACT · MACRO DRIVERS · LIVE FEED</div>
+      <div class="section-sub">HIGH IMPACT CATALYSTS · MACRO & CRYPTO</div>
     </div>
     <button class="trade-btn" onclick="loadNews()" style="color:var(--green);border-color:#0a3020;">↻ REFRESH</button>
   </div>
 
-  <!-- Live News Feed -->
-  <div class="card" style="margin-bottom:14px;">
-    <div class="card-title">Live Market-Moving News</div>
-    <div id="news-loading" style="font-family:var(--mono);font-size:9px;color:var(--muted);padding:20px 0;letter-spacing:0.1em;text-align:center;">Loading latest news...</div>
-    <div id="news-container" style="display:none;"></div>
+  <!-- Filter bar -->
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+    <button onclick="filterNews('all')" id="filter-all" class="news-filter active-filter">ALL</button>
+    <button onclick="filterNews('macro')" id="filter-macro" class="news-filter">MACRO</button>
+    <button onclick="filterNews('crypto')" id="filter-crypto" class="news-filter">CRYPTO</button>
+    <button onclick="filterNews('fed')" id="filter-fed" class="news-filter">FED / RATES</button>
+    <button onclick="filterNews('risk')" id="filter-risk" class="news-filter">RISK EVENTS</button>
   </div>
 
-  <!-- Cryptopanic Feed -->
-  <div class="card" style="margin-bottom:14px;">
-    <div class="card-title">Crypto News Feed</div>
-    <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:0.08em;margin-bottom:10px;">High-impact crypto and macro news via CryptoPanic</div>
-    <iframe
-      src="https://cryptopanic.com/news/rss/"
-      style="width:100%;height:400px;border:1px solid var(--border);background:var(--surface);"
-      frameborder="0">
-    </iframe>
-  </div>
-
-  <!-- Key Sources -->
-  <div class="card">
-    <div class="card-title">Key News Sources</div>
-    <div class="links-grid">
-      <a class="link-card" href="https://www.federalreserve.gov/newsevents.htm" target="_blank">
-        <div class="link-arrow">↗</div>
-        <div class="link-name">Federal Reserve</div>
-        <div class="link-url">federalreserve.gov</div>
-      </a>
-      <a class="link-card" href="https://www.bls.gov/news.release/" target="_blank">
-        <div class="link-arrow">↗</div>
-        <div class="link-name">BLS — CPI / NFP Data</div>
-        <div class="link-url">bls.gov</div>
-      </a>
-      <a class="link-card" href="https://www.investing.com/economic-calendar/" target="_blank">
-        <div class="link-arrow">↗</div>
-        <div class="link-name">Economic Calendar</div>
-        <div class="link-url">investing.com</div>
-      </a>
-      <a class="link-card" href="https://cryptopanic.com" target="_blank">
-        <div class="link-arrow">↗</div>
-        <div class="link-name">CryptoPanic</div>
-        <div class="link-url">cryptopanic.com</div>
-      </a>
-      <a class="link-card" href="https://www.coindesk.com" target="_blank">
-        <div class="link-arrow">↗</div>
-        <div class="link-name">CoinDesk</div>
-        <div class="link-url">coindesk.com</div>
-      </a>
-      <a class="link-card" href="https://theblock.co" target="_blank">
-        <div class="link-arrow">↗</div>
-        <div class="link-name">The Block</div>
-        <div class="link-url">theblock.co</div>
-      </a>
+  <!-- News feed -->
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div id="news-loading" style="font-family:var(--mono);font-size:9px;color:var(--muted);padding:24px;letter-spacing:0.1em;text-align:center;">
+      Loading market catalysts...
     </div>
+    <div id="news-feed" style="display:none;"></div>
+  </div>
+
+  <!-- Source links -->
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
+    <a href="https://www.federalreserve.gov/newsevents.htm" target="_blank" style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:0.1em;text-decoration:none;">Fed ↗</a>
+    <a href="https://www.bls.gov/news.release/" target="_blank" style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:0.1em;text-decoration:none;">BLS ↗</a>
+    <a href="https://cryptopanic.com" target="_blank" style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:0.1em;text-decoration:none;">CryptoPanic ↗</a>
+    <a href="https://coindesk.com" target="_blank" style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:0.1em;text-decoration:none;">CoinDesk ↗</a>
+    <a href="https://theblock.co" target="_blank" style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:0.1em;text-decoration:none;">The Block ↗</a>
+    <a href="https://www.investing.com/economic-calendar/" target="_blank" style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:0.1em;text-decoration:none;">Economic Calendar ↗</a>
   </div>
 
 </div>
@@ -883,89 +871,253 @@ function updateDate() {
 updateDate();
 
 // ── Market News ──
-function loadNews() {
-  const container = document.getElementById('news-container');
-  const loading = document.getElementById('news-loading');
-  loading.style.display = 'block';
-  container.style.display = 'none';
+let allNewsItems = [];
+let currentFilter = 'all';
 
-  // High-impact events hardcoded with live links — these are the key recurring events
-  const keyEvents = [
-    { name: 'FOMC Meeting & Rate Decision', desc: 'Federal Reserve interest rate decision — highest market impact event', url: 'https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm', impact: 'CRITICAL' },
-    { name: 'CPI — Consumer Price Index', desc: 'US inflation data — major BTC and risk asset mover', url: 'https://www.bls.gov/cpi/', impact: 'HIGH' },
-    { name: 'Non-Farm Payrolls (NFP)', desc: 'US jobs report — first Friday of every month', url: 'https://www.bls.gov/news.release/empsit.nr0.htm', impact: 'HIGH' },
-    { name: 'PCE Inflation Data', desc: "Fed's preferred inflation measure — released monthly", url: 'https://www.bea.gov/data/personal-consumption-expenditures-price-index', impact: 'HIGH' },
-    { name: 'PPI — Producer Price Index', desc: 'Leading indicator for CPI — signals future inflation', url: 'https://www.bls.gov/ppi/', impact: 'MEDIUM' },
-    { name: 'GDP Growth Rate', desc: 'Quarterly US economic growth — major macro signal', url: 'https://www.bea.gov/data/gdp/gross-domestic-product', impact: 'MEDIUM' },
-    { name: 'Initial Jobless Claims', desc: 'Weekly unemployment — released every Thursday', url: 'https://www.dol.gov/ui/data.pdf', impact: 'MEDIUM' },
-    { name: 'ISM Manufacturing PMI', desc: 'Business activity survey — risk-on/off signal', url: 'https://www.ismworld.org/supply-management-news-and-reports/reports/ism-report-on-business/', impact: 'MEDIUM' },
+const HIGH_IMPACT_KEYWORDS = [
+  // Fed / Rates
+  'federal reserve','fomc','interest rate','rate decision','rate hike','rate cut','powell','inflation','cpi','pce','nfp','non-farm','payroll','gdp','unemployment','hawkish','dovish','quantitative','tightening','easing','treasury','yield','bond',
+  // Macro
+  'recession','stagflation','tariff','sanctions','geopolitical','war','conflict','china','oil','energy','dollar','dxy','s&p','nasdaq','market crash','correction','rally','risk off','risk on','macro',
+  // Crypto specific
+  'bitcoin','btc','ethereum','eth','crypto','sec','etf','regulation','hack','exploit','liquidation','whale','institutional','blackrock','fidelity','coinbase','binance','hyperliquid','defi','stablecoin','tether','usdt',
+];
+
+const CATEGORIES = {
+  macro: ['inflation','cpi','pce','nfp','non-farm','payroll','gdp','unemployment','recession','tariff','oil','energy','dollar','dxy','s&p','nasdaq','macro','stagflation'],
+  crypto: ['bitcoin','btc','ethereum','eth','crypto','etf','regulation','hack','exploit','liquidation','whale','institutional','blackrock','fidelity','coinbase','binance','hyperliquid','defi','stablecoin','tether','usdt'],
+  fed: ['federal reserve','fomc','interest rate','rate decision','rate hike','rate cut','powell','hawkish','dovish','quantitative','tightening','easing','treasury','yield','bond'],
+  risk: ['recession','stagflation','crash','correction','geopolitical','war','conflict','sanctions','hack','exploit','liquidation','crisis','collapse'],
+};
+
+function newsMatchesFilter(item, filter) {
+  if (filter === 'all') return true;
+  const text = (item.title + ' ' + item.desc).toLowerCase();
+  return CATEGORIES[filter]?.some(k => text.includes(k)) || false;
+}
+
+function isHighImpact(item) {
+  const text = (item.title + ' ' + item.desc).toLowerCase();
+  return HIGH_IMPACT_KEYWORDS.some(k => text.includes(k));
+}
+
+function renderNews() {
+  const feed = document.getElementById('news-feed');
+  const filtered = allNewsItems.filter(item => newsMatchesFilter(item, currentFilter));
+
+  if (filtered.length === 0) {
+    feed.innerHTML = `<div style="font-family:var(--mono);font-size:9px;color:var(--muted);padding:24px;text-align:center;letter-spacing:0.08em;">No ${currentFilter} news found in current feed.</div>`;
+    return;
+  }
+
+  feed.innerHTML = filtered.map(item => `
+    <div class="news-item">
+      <div style="display:flex;align-items:flex-start;gap:10px;">
+        <div style="flex-shrink:0;margin-top:2px;">
+          <div style="padding:2px 6px;border-radius:2px;font-family:var(--mono);font-size:6.5px;letter-spacing:0.1em;font-weight:700;
+            background:${item.impact==='HIGH'?'#100a00':'#07101a'};
+            color:${item.impact==='HIGH'?'var(--amber)':'var(--blue)'};
+            border:1px solid ${item.impact==='HIGH'?'#2a1a00':'#0a1a2a'};">
+            ${item.impact}
+          </div>
+        </div>
+        <div style="flex:1;">
+          <a href="${item.url}" target="_blank" style="font-family:var(--mono);font-size:11px;color:var(--text);text-decoration:none;font-weight:500;line-height:1.4;display:block;margin-bottom:4px;">${item.title}</a>
+          <div style="display:flex;gap:12px;align-items:center;">
+            <span style="font-family:var(--mono);font-size:8px;color:var(--blue);letter-spacing:0.06em;">${item.source}</span>
+            <span style="font-family:var(--mono);font-size:8px;color:var(--dim);">${item.time}</span>
+            ${item.category ? `<span style="font-family:var(--mono);font-size:7px;color:var(--muted);letter-spacing:0.1em;padding:1px 6px;border:1px solid var(--border);">${item.category.toUpperCase()}</span>` : ''}
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterNews(filter) {
+  currentFilter = filter;
+  document.querySelectorAll('.news-filter').forEach(b => b.classList.remove('active-filter'));
+  document.getElementById('filter-' + filter).classList.add('active-filter');
+  renderNews();
+}
+
+async function loadNews() {
+  const loading = document.getElementById('news-loading');
+  const feed = document.getElementById('news-feed');
+  loading.style.display = 'block';
+  feed.style.display = 'none';
+  allNewsItems = [];
+
+  // Use RSS2JSON to fetch multiple feeds — free service, no key needed
+  const RSS2JSON = 'https://api.rss2json.com/v1/api.json?rss_url=';
+
+  const sources = [
+    { url: 'https://feeds.bloomberg.com/markets/news.rss', name: 'Bloomberg', category: 'macro' },
+    { url: 'https://www.coindesk.com/arc/outboundfeeds/rss/', name: 'CoinDesk', category: 'crypto' },
+    { url: 'https://cointelegraph.com/rss', name: 'CoinTelegraph', category: 'crypto' },
+    { url: 'https://theblock.co/rss.xml', name: 'The Block', category: 'crypto' },
+    { url: 'https://feeds.reuters.com/reuters/businessNews', name: 'Reuters', category: 'macro' },
   ];
 
-  const impactColor = { CRITICAL: '#e05252', HIGH: '#f0a050', MEDIUM: '#3a7bd5' };
+  const fetches = sources.map(async src => {
+    try {
+      const res = await fetch(RSS2JSON + encodeURIComponent(src.url) + '&count=10', { signal: AbortSignal.timeout(8000) });
+      const data = await res.json();
+      if (data.status !== 'ok' || !data.items) return [];
+      return data.items.map(item => ({
+        title: item.title?.trim() || '',
+        desc: item.description?.replace(/<[^>]+>/g, '').trim().substring(0, 200) || '',
+        url: item.link || '#',
+        source: src.name,
+        category: src.category,
+        time: item.pubDate ? new Date(item.pubDate).toLocaleDateString('en-GB', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '',
+        pubDate: item.pubDate ? new Date(item.pubDate) : new Date(0),
+        impact: 'WATCH',
+      }));
+    } catch { return []; }
+  });
 
-  container.innerHTML = keyEvents.map(e => `
-    <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);">
-      <div style="flex-shrink:0;padding:3px 8px;border-radius:2px;font-family:var(--mono);font-size:7px;letter-spacing:0.1em;font-weight:700;
-        background:${e.impact==='CRITICAL'?'#100707':e.impact==='HIGH'?'#100a00':'#07101a'};
-        color:${impactColor[e.impact]};border:1px solid ${e.impact==='CRITICAL'?'#2a0a0a':e.impact==='HIGH'?'#2a1a00':'#0a1a2a'};">
+  const results = await Promise.allSettled(fetches);
+  let items = results.flatMap(r => r.status === 'fulfilled' ? r.value : []);
+
+  // Filter to high-impact only
+  items = items.filter(item => isHighImpact(item));
+
+  // Mark truly high impact
+  items = items.map(item => ({
+    ...item,
+    impact: CATEGORIES.fed.some(k => (item.title + item.desc).toLowerCase().includes(k)) ||
+            CATEGORIES.risk.some(k => (item.title + item.desc).toLowerCase().includes(k)) ? 'HIGH' : 'WATCH'
+  }));
+
+  // Sort by date, deduplicate by title similarity
+  items.sort((a, b) => b.pubDate - a.pubDate);
+  const seen = new Set();
+  allNewsItems = items.filter(item => {
+    const key = item.title.toLowerCase().substring(0, 40);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0, 40);
+
+  loading.style.display = 'none';
+  feed.style.display = 'block';
+
+  if (allNewsItems.length === 0) {
+    feed.innerHTML = `<div style="font-family:var(--mono);font-size:9px;color:var(--muted);padding:24px;text-align:center;letter-spacing:0.08em;">
+      Unable to load live feed — check your connection or visit sources directly below.</div>`;
+    return;
+  }
+
+  renderNews();
+}
+
+// ── Auto-scrolling Events Ticker ──
+function loadEconEvents() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+
+  // Get start and end of current week (Mon–Sun)
+  const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1; // Mon=0
+  const weekStart = new Date(now); weekStart.setDate(now.getDate() - dayOfWeek); weekStart.setHours(0,0,0,0);
+  const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6); weekEnd.setHours(23,59,59,999);
+
+  function fmt(d) {
+    return d.toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' });
+  }
+
+  function firstFriday(y, m) {
+    const d = new Date(y, m, 1);
+    while (d.getDay() !== 5) d.setDate(d.getDate() + 1);
+    return new Date(d);
+  }
+
+  function nthWeekday(y, m, n, weekday) {
+    const d = new Date(y, m, 1); let count = 0;
+    while (count < n) { if (d.getDay() === weekday) count++; if (count < n) d.setDate(d.getDate() + 1); }
+    return new Date(d);
+  }
+
+  // Build all events for this month and next
+  const allEvents = [];
+  for (let offset = 0; offset <= 1; offset++) {
+    const m = (month + offset) % 12;
+    const y = year + Math.floor((month + offset) / 12);
+
+    allEvents.push({ name: 'NFP', date: firstFriday(y, m), impact: 'HIGH' });
+    allEvents.push({ name: 'CPI', date: new Date(y, m, 12), impact: 'HIGH' });
+    allEvents.push({ name: 'PPI', date: new Date(y, m, 13), impact: 'MEDIUM' });
+    allEvents.push({ name: 'PCE', date: new Date(y, m, 26), impact: 'HIGH' });
+    allEvents.push({ name: 'ISM PMI', date: new Date(y, m, 2), impact: 'MEDIUM' });
+    for (let n = 1; n <= 4; n++) {
+      allEvents.push({ name: 'Jobless Claims', date: nthWeekday(y, m, n, 4), impact: 'MEDIUM' });
+    }
+    if ([0,3,6,9].includes(m)) allEvents.push({ name: 'GDP', date: new Date(y, m, 26), impact: 'MEDIUM' });
+    if ([0,2,4,5,6,8,10,11].includes(m)) allEvents.push({ name: 'FOMC', date: nthWeekday(y, m, 2, 3), impact: 'CRITICAL' });
+  }
+
+  // Filter to this week only
+  const thisWeek = allEvents
+    .filter(e => e.date >= weekStart && e.date <= weekEnd)
+    .sort((a, b) => a.date - b.date);
+
+  const ticker = document.getElementById('events-ticker');
+  if (!ticker) return;
+
+  if (thisWeek.length === 0) {
+    ticker.parentElement.innerHTML = `
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);padding:12px 16px;letter-spacing:0.08em;">
+        No major scheduled events this week — lighter macro week.
+      </div>`;
+    return;
+  }
+
+  const impactColor = { CRITICAL: '#e05252', HIGH: '#f0a050', MEDIUM: '#3a7bd5' };
+  const impactBg = { CRITICAL: '#100707', HIGH: '#100a00', MEDIUM: '#07101a' };
+  const impactBorder = { CRITICAL: '#2a0a0a', HIGH: '#2a1a00', MEDIUM: '#0a1a2a' };
+
+  const itemsHTML = thisWeek.map(e => `
+    <div style="display:inline-flex;align-items:center;gap:10px;padding:0 28px;border-right:1px solid var(--border);height:44px;flex-shrink:0;">
+      <div style="padding:2px 7px;border-radius:2px;font-family:var(--mono);font-size:7px;letter-spacing:0.1em;font-weight:700;
+        background:${impactBg[e.impact]};color:${impactColor[e.impact]};border:1px solid ${impactBorder[e.impact]};">
         ${e.impact}
       </div>
-      <div style="flex:1;">
-        <a href="${e.url}" target="_blank" style="font-family:var(--mono);font-size:11px;color:var(--text);text-decoration:none;font-weight:500;">${e.name} ↗</a>
-        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:3px;">${e.desc}</div>
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text);letter-spacing:0.06em;">${e.name}</div>
+        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:1px;">${fmt(e.date)}</div>
       </div>
     </div>
   `).join('');
 
-  // Add live calendar embed below
-  container.innerHTML += `
-    <div style="margin-top:16px;">
-      <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:0.14em;margin-bottom:10px;">THIS WEEK'S HIGH-IMPACT USD EVENTS</div>
-      <iframe src="https://sslecal2.investing.com?columns=exc_flags,exc_currency,exc_importance,exc_actual,exc_forecast,exc_previous&features=datepicker,timezone&countries=5&calType=week&timeZone=55&lang=1"
-        width="100%" height="400" frameborder="0" style="border:1px solid var(--border);"></iframe>
-    </div>
-  `;
+  // If few events no need to scroll — just show them static
+  if (thisWeek.length <= 3) {
+    ticker.innerHTML = itemsHTML;
+    ticker.style.position = 'relative';
+    ticker.style.transform = 'none';
+    return;
+  }
 
-  loading.style.display = 'none';
-  container.style.display = 'block';
-}
+  // Duplicate for seamless loop
+  ticker.innerHTML = itemsHTML + itemsHTML;
 
-// ── Economic events for pre-market ──
-function loadEconEvents() {
-  const container = document.getElementById('econ-events-container');
-  const loading = document.getElementById('econ-events-loading');
+  let pos = 0;
+  let paused = false;
+  const speed = 0.5;
 
-  const keyEvents = [
-    { name: 'FOMC', impact: 'CRITICAL', url: 'https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm' },
-    { name: 'CPI', impact: 'HIGH', url: 'https://www.bls.gov/cpi/' },
-    { name: 'NFP', impact: 'HIGH', url: 'https://www.bls.gov/news.release/empsit.nr0.htm' },
-    { name: 'PCE', impact: 'HIGH', url: 'https://www.bea.gov/data/personal-consumption-expenditures-price-index' },
-    { name: 'PPI', impact: 'MEDIUM', url: 'https://www.bls.gov/ppi/' },
-    { name: 'GDP', impact: 'MEDIUM', url: 'https://www.bea.gov/data/gdp/gross-domestic-product' },
-    { name: 'Jobless Claims', impact: 'MEDIUM', url: 'https://www.dol.gov/ui/data.pdf' },
-    { name: 'ISM PMI', impact: 'MEDIUM', url: 'https://www.ismworld.org' },
-  ];
+  ticker.parentElement.addEventListener('mouseenter', () => paused = true);
+  ticker.parentElement.addEventListener('mouseleave', () => paused = false);
 
-  const impactColor = { CRITICAL: '#e05252', HIGH: '#f0a050', MEDIUM: '#3a7bd5' };
-
-  container.innerHTML = `
-    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
-      ${keyEvents.map(e => `
-        <a href="${e.url}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;
-          background:${e.impact==='CRITICAL'?'#100707':e.impact==='HIGH'?'#100a00':'#07101a'};
-          border:1px solid ${e.impact==='CRITICAL'?'#2a0a0a':e.impact==='HIGH'?'#2a1a00':'#0a1a2a'};
-          border-radius:2px;text-decoration:none;">
-          <span style="font-family:var(--mono);font-size:10px;color:${impactColor[e.impact]};font-weight:700;">${e.name}</span>
-          <span style="font-family:var(--mono);font-size:7px;color:${impactColor[e.impact]};opacity:0.7;">${e.impact}</span>
-        </a>
-      `).join('')}
-    </div>
-    <iframe src="https://sslecal2.investing.com?columns=exc_flags,exc_currency,exc_importance,exc_actual,exc_forecast,exc_previous&features=datepicker,timezone&countries=5&calType=week&timeZone=55&lang=1"
-      width="100%" height="320" frameborder="0" style="border:1px solid var(--border);"></iframe>
-  `;
-
-  loading.style.display = 'none';
-  container.style.display = 'block';
+  function animate() {
+    if (!paused) {
+      pos -= speed;
+      const halfWidth = ticker.scrollWidth / 2;
+      if (Math.abs(pos) >= halfWidth) pos = 0;
+      ticker.style.transform = `translateX(${pos}px)`;
+    }
+    requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
 }
 
 // ── Trade sheet print/download ──
@@ -976,58 +1128,141 @@ function getTradeSheetHTML() {
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet"/>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:'IBM Plex Mono',monospace;background:white;color:#0a0a0a;padding:28px 32px;max-width:210mm;margin:0 auto;font-size:10px;}
-    h1{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:0.06em;margin-bottom:2px;color:#0a0a0a;}
-    .brand{font-size:8px;letter-spacing:0.2em;color:#1a3a5c;margin-bottom:4px;}
-    .meta{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0;padding:12px;background:#f7f5f0;border:1px solid #ccc;}
-    .meta-item .label{font-size:7px;color:#888;letter-spacing:0.14em;margin-bottom:3px;text-transform:uppercase;}
-    .meta-item .value{font-size:12px;font-weight:700;color:#0a0a0a;}
-    .section{margin-bottom:12px;border:1px solid #ccc;page-break-inside:avoid;}
-    .section-title{background:#1a3a5c;color:white;padding:6px 12px;font-size:8px;letter-spacing:0.16em;text-transform:uppercase;}
-    .question{padding:10px 12px;border-bottom:1px solid #e0ddd8;}
-    .question:last-child{border-bottom:none;}
-    .q-label{font-size:7px;color:#666;margin-bottom:6px;letter-spacing:0.08em;text-transform:uppercase;}
-    .q-answer{min-height:90px;background:#fafaf8;border:1px solid #ddd;padding:8px 10px;font-size:10px;line-height:1.8;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace;}
-    .footer{margin-top:16px;padding-top:10px;border-top:1.5px solid #0a0a0a;display:flex;justify-content:space-between;font-size:7px;color:#888;letter-spacing:0.1em;}
-    @media print{
-      body{padding:15mm 18mm;font-size:10px;}
-      .section{page-break-inside:avoid;}
-      .q-answer{min-height:100px;}
-    }
+    @page{size:A4;margin:10mm 12mm;}
+    body{font-family:'IBM Plex Mono',monospace;background:white;color:#0a0a0a;font-size:9px;}
+    .page{width:186mm;height:277mm;display:flex;flex-direction:column;overflow:hidden;}
+    .page-break{page-break-after:always;}
+    .hdr{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1.5px solid #0a0a0a;padding-bottom:5px;margin-bottom:7px;flex-shrink:0;}
+    .hdr-left .brand{font-size:7px;letter-spacing:0.18em;color:#1a3a5c;margin-bottom:1px;}
+    .hdr-left .title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.06em;line-height:1;}
+    .hdr-right{font-size:7px;color:#888;letter-spacing:0.1em;text-align:right;}
+    .meta{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #ccc;margin-bottom:4px;flex-shrink:0;}
+    .meta-item{padding:4px 8px;border-right:1px solid #ccc;}
+    .meta-item:last-child{border-right:none;}
+    .meta-item .lbl{font-size:6px;color:#999;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:2px;}
+    .meta-item .val{font-size:10px;font-weight:700;}
+    .secs{display:flex;flex-direction:column;flex:1;gap:4px;}
+    .sec{border:1px solid #ccc;display:flex;flex-direction:column;flex:1;}
+    .sec-title{background:#1a3a5c;color:white;padding:4px 10px;font-size:7px;letter-spacing:0.16em;text-transform:uppercase;flex-shrink:0;}
+    .qs{display:flex;flex-direction:column;flex:1;}
+    .q{display:flex;flex-direction:column;flex:1;border-top:1px solid #e0ddd8;}
+    .q:first-child{border-top:none;}
+    .q-lbl{font-size:6.5px;color:#777;padding:3px 10px;background:#f8f7f5;letter-spacing:0.08em;text-transform:uppercase;border-bottom:1px solid #eee;flex-shrink:0;}
+    .q-ans{flex:1;padding:4px 10px;font-size:9px;line-height:1.9;color:#333;white-space:pre-wrap;}
+    .ftr{flex-shrink:0;margin-top:5px;padding-top:4px;border-top:1px solid #ccc;display:flex;justify-content:space-between;font-size:6.5px;color:#aaa;letter-spacing:0.1em;}
+    @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}.page{height:277mm;}.page-break{page-break-after:always;}}
   </style></head><body>
-  <div class="brand">TRADINGWITHPURPOSE</div>
-  <h1>TRADE SHEET</h1>
-  <div class="meta">
-    <div class="meta-item"><div class="label">DATE</div><div class="value">${get('ts-date')}</div></div>
-    <div class="meta-item"><div class="label">INSTRUMENT</div><div class="value">${get('ts-pair')}</div></div>
-    <div class="meta-item"><div class="label">DIRECTION</div><div class="value">${get('ts-direction')}</div></div>
-    <div class="meta-item"><div class="label">SETUP</div><div class="value">${get('ts-setup')}</div></div>
-    <div class="meta-item"><div class="label">ENTRY</div><div class="value">${get('ts-entry')}</div></div>
-    <div class="meta-item"><div class="label">STOP</div><div class="value">${get('ts-stop')}</div></div>
-    <div class="meta-item"><div class="label">TARGET</div><div class="value">${get('ts-target')}</div></div>
-    <div class="meta-item"><div class="label">RESULT</div><div class="value">${get('ts-result')}</div></div>
-  </div>
-  ${[
-    ['1 · Plan vs Reality', [['1A','Did the chart show exactly what I planned for?','ts-1a'],['1B','What confluences I planned actually appeared?','ts-1b'],['1C','Did anything unexpected happen before or during entry?','ts-1c']]],
-    ['2 · Entry Quality', [['2A','Was my entry at a technically sound location?','ts-2a'],['2B','Was there a better entry I missed?','ts-2b'],['2C','Did I wait for confirmation or jump early?','ts-2c']]],
-    ['3 · Trade Management', [['3A','Did I follow my trade management plan?','ts-3a'],['3B','Was my size adjustment based on a signal or emotion?','ts-3b'],['3C','Could I have managed risk better?','ts-3c']]],
-    ['4 · Exit & Aftermath', [['4A','Was my exit based on plan or emotion?','ts-4a'],['4B','What happened right after I exited?','ts-4b'],['4C','Would a different exit method have improved the trade?','ts-4c']]],
-    ['5 · Key Takeaway', [['5A','What is the single biggest improvement I can make for this exact setup?','ts-5a'],['5B','Would I take this trade again under the same conditions?','ts-5b']]],
-  ].map(([title, qs]) => `
-    <div class="section">
-      <div class="section-title">${title}</div>
-      ${qs.map(([num,q,id]) => `<div class="question"><div class="q-label">${num} · ${q}</div><div class="q-answer">${get(id)}</div></div>`).join('')}
+
+  <!-- PAGE 1: Header + Details + Sections 1 & 2 -->
+  <div class="page page-break">
+    <div class="hdr">
+      <div class="hdr-left"><div class="brand">TRADINGWITHPURPOSE</div><div class="title">TRADE SHEET</div></div>
+      <div class="hdr-right">Page 1 of 3 · ${get('ts-date')}</div>
     </div>
-  `).join('')}
-  <div class="footer"><span>TRADINGWITHPURPOSE · TRADE SHEET · ${get('ts-date')}</span><span>1–1.5% RISK · 2R MIN · 10x ISOLATED</span></div>
+    <div class="meta">
+      <div class="meta-item"><div class="lbl">Date</div><div class="val">${get('ts-date')}</div></div>
+      <div class="meta-item"><div class="lbl">Instrument</div><div class="val">${get('ts-pair')}</div></div>
+      <div class="meta-item"><div class="lbl">Direction</div><div class="val">${get('ts-direction')}</div></div>
+      <div class="meta-item"><div class="lbl">Setup</div><div class="val">${get('ts-setup')}</div></div>
+    </div>
+    <div class="meta" style="border-top:none;margin-bottom:7px;">
+      <div class="meta-item"><div class="lbl">Entry</div><div class="val">${get('ts-entry')}</div></div>
+      <div class="meta-item"><div class="lbl">Stop Loss</div><div class="val">${get('ts-stop')}</div></div>
+      <div class="meta-item"><div class="lbl">Target</div><div class="val">${get('ts-target')}</div></div>
+      <div class="meta-item"><div class="lbl">Result</div><div class="val">${get('ts-result')}</div></div>
+    </div>
+    <div class="secs">
+      <div class="sec">
+        <div class="sec-title">1 · Plan vs Reality</div>
+        <div class="qs">
+          <div class="q"><div class="q-lbl">1A · Did the chart show exactly what I planned for?</div><div class="q-ans">${get('ts-1a')}</div></div>
+          <div class="q"><div class="q-lbl">1B · What confluences I planned actually appeared?</div><div class="q-ans">${get('ts-1b')}</div></div>
+          <div class="q"><div class="q-lbl">1C · Did anything unexpected happen before or during entry?</div><div class="q-ans">${get('ts-1c')}</div></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-title">2 · Entry Quality</div>
+        <div class="qs">
+          <div class="q"><div class="q-lbl">2A · Was my entry at a technically sound location?</div><div class="q-ans">${get('ts-2a')}</div></div>
+          <div class="q"><div class="q-lbl">2B · Was there a better entry I missed?</div><div class="q-ans">${get('ts-2b')}</div></div>
+          <div class="q"><div class="q-lbl">2C · Did I wait for confirmation or jump early?</div><div class="q-ans">${get('ts-2c')}</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="ftr"><span>TRADINGWITHPURPOSE · TRADE SHEET</span><span>1–1.5% RISK · 2R MIN · 10x ISOLATED</span></div>
+  </div>
+
+  <!-- PAGE 2: Sections 3 & 4 -->
+  <div class="page page-break">
+    <div class="hdr">
+      <div class="hdr-left"><div class="brand">TRADINGWITHPURPOSE</div><div class="title">TRADE SHEET</div></div>
+      <div class="hdr-right">Page 2 of 3 · ${get('ts-pair')} ${get('ts-direction')} · ${get('ts-date')}</div>
+    </div>
+    <div class="secs">
+      <div class="sec">
+        <div class="sec-title">3 · Trade Management</div>
+        <div class="qs">
+          <div class="q"><div class="q-lbl">3A · Did I follow my trade management plan (scaling, stops, profit targets)?</div><div class="q-ans">${get('ts-3a')}</div></div>
+          <div class="q"><div class="q-lbl">3B · Was my size adjustment based on a signal or emotion?</div><div class="q-ans">${get('ts-3b')}</div></div>
+          <div class="q"><div class="q-lbl">3C · Could I have managed risk better?</div><div class="q-ans">${get('ts-3c')}</div></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-title">4 · Exit & Aftermath</div>
+        <div class="qs">
+          <div class="q"><div class="q-lbl">4A · Was my exit based on plan or emotion?</div><div class="q-ans">${get('ts-4a')}</div></div>
+          <div class="q"><div class="q-lbl">4B · What happened right after I exited — did the market prove me right or wrong?</div><div class="q-ans">${get('ts-4b')}</div></div>
+          <div class="q"><div class="q-lbl">4C · Would a different exit method have improved the trade?</div><div class="q-ans">${get('ts-4c')}</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="ftr"><span>TRADINGWITHPURPOSE · TRADE SHEET</span><span>1–1.5% RISK · 2R MIN · 10x ISOLATED</span></div>
+  </div>
+
+  <!-- PAGE 3: Section 5 — full page writing space -->
+  <div class="page">
+    <div class="hdr">
+      <div class="hdr-left"><div class="brand">TRADINGWITHPURPOSE</div><div class="title">TRADE SHEET</div></div>
+      <div class="hdr-right">Page 3 of 3 · ${get('ts-pair')} ${get('ts-direction')} · ${get('ts-date')}</div>
+    </div>
+    <div class="secs">
+      <div class="sec">
+        <div class="sec-title">5 · Key Takeaway</div>
+        <div class="qs">
+          <div class="q" style="flex:3;"><div class="q-lbl">5A · What is the single biggest improvement I can make for this exact setup?</div><div class="q-ans">${get('ts-5a')}</div></div>
+          <div class="q" style="flex:1;"><div class="q-lbl">5B · Would I take this trade again under the same conditions?</div><div class="q-ans">${get('ts-5b')}</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="ftr"><span>TRADINGWITHPURPOSE · TRADE SHEET · ${get('ts-date')}</span><span>1–1.5% RISK · 2R MIN · 10x ISOLATED</span></div>
+  </div>
+
   </body></html>`;
 }
 
+function printViaIframe(html) {
+  // Remove any existing print iframe
+  const existing = document.getElementById('print-iframe');
+  if (existing) existing.remove();
+
+  const iframe = document.createElement('iframe');
+  iframe.id = 'print-iframe';
+  iframe.style.cssText = 'position:fixed;top:-10000px;left:-10000px;width:0;height:0;border:none;';
+  document.body.appendChild(iframe);
+
+  iframe.contentDocument.open();
+  iframe.contentDocument.write(html);
+  iframe.contentDocument.close();
+
+  iframe.onload = () => {
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+    setTimeout(() => iframe.remove(), 2000);
+  };
+}
+
 function printTradeSheet() {
-  const w = window.open('', '_blank');
-  w.document.write(getTradeSheetHTML());
-  w.document.close();
-  w.onload = () => w.print();
+  printViaIframe(getTradeSheetHTML());
 }
 
 function downloadTradeSheet() {
@@ -1048,39 +1283,36 @@ function getWeeklyHTML() {
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet"/>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:'IBM Plex Mono',monospace;background:white;color:#0a0a0a;padding:28px 32px;max-width:210mm;margin:0 auto;font-size:10px;}
-    h1{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:0.06em;margin-bottom:2px;}
-    .brand{font-size:8px;letter-spacing:0.2em;color:#1a3a5c;margin-bottom:4px;}
-    .date-line{font-size:9px;color:#888;margin-bottom:16px;letter-spacing:0.1em;}
-    .question{margin-bottom:14px;border:1px solid #ccc;page-break-inside:avoid;}
-    .q-label{background:#1a3a5c;color:white;padding:7px 12px;font-size:8px;letter-spacing:0.12em;text-transform:uppercase;}
-    .q-answer{min-height:180px;background:white;padding:12px 14px;font-size:10px;line-height:2;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace;border-top:none;}
-    .footer{margin-top:16px;padding-top:10px;border-top:1.5px solid #0a0a0a;display:flex;justify-content:space-between;font-size:7px;color:#888;letter-spacing:0.1em;}
-    @media print{
-      body{padding:15mm 18mm;font-size:10px;}
-      .question{page-break-inside:avoid;margin-bottom:10px;}
-      .q-answer{min-height:200px;line-height:2.2;}
-    }
+    @page{size:A4;margin:10mm 12mm;}
+    body{font-family:'IBM Plex Mono',monospace;background:white;color:#0a0a0a;font-size:9px;width:186mm;height:277mm;display:flex;flex-direction:column;}
+    .hdr{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1.5px solid #0a0a0a;padding-bottom:5px;margin-bottom:8px;flex-shrink:0;}
+    .hdr-left .brand{font-size:7px;letter-spacing:0.18em;color:#1a3a5c;margin-bottom:1px;}
+    .hdr-left .title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.06em;line-height:1;}
+    .hdr-right{font-size:7px;color:#888;letter-spacing:0.1em;text-align:right;}
+    .questions{display:flex;flex-direction:column;flex:1;gap:5px;}
+    .q{border:1px solid #ccc;display:flex;flex-direction:column;flex:1;}
+    .q-lbl{background:#1a3a5c;color:white;padding:4px 10px;font-size:6.5px;letter-spacing:0.14em;text-transform:uppercase;flex-shrink:0;}
+    .q-ans{flex:1;padding:6px 10px;font-size:9px;line-height:1.9;color:#333;white-space:pre-wrap;}
+    .ftr{flex-shrink:0;margin-top:6px;padding-top:5px;border-top:1px solid #ccc;display:flex;justify-content:space-between;font-size:6.5px;color:#aaa;letter-spacing:0.1em;}
+    @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
   </style></head><body>
-  <div class="brand">TRADINGWITHPURPOSE</div>
-  <h1>WEEKLY PERFORMANCE REVIEW</h1>
-  <div class="date-line">WEEK OF ${get('wr-date')}</div>
-  ${[
-    ['01 · What did I do well this week?','wr-1'],
-    ['02 · What did I not do well?','wr-2'],
-    ['03 · Did I deviate from my trade plan / process? If yes, why?','wr-3'],
-    ['04 · What was the outcome of deviating from my trade plan / process?','wr-4'],
-    ['05 · How do I plan to improve for next week?','wr-5'],
-  ].map(([q,id]) => `<div class="question"><div class="q-label">${q}</div><div class="q-answer">${get(id)}</div></div>`).join('')}
-  <div class="footer"><span>TRADINGWITHPURPOSE · WEEKLY REVIEW · ${get('wr-date')}</span><span>END OF WEEK REFLECTION</span></div>
+  <div class="hdr">
+    <div class="hdr-left"><div class="brand">TRADINGWITHPURPOSE</div><div class="title">WEEKLY PERFORMANCE REVIEW</div></div>
+    <div class="hdr-right">Week of ${get('wr-date')}</div>
+  </div>
+  <div class="questions">
+    <div class="q"><div class="q-lbl">01 · What did I do well this week?</div><div class="q-ans">${get('wr-1')}</div></div>
+    <div class="q"><div class="q-lbl">02 · What did I not do well?</div><div class="q-ans">${get('wr-2')}</div></div>
+    <div class="q"><div class="q-lbl">03 · Did I deviate from my trade plan / process? If yes, why?</div><div class="q-ans">${get('wr-3')}</div></div>
+    <div class="q"><div class="q-lbl">04 · What was the outcome of deviating from my trade plan / process?</div><div class="q-ans">${get('wr-4')}</div></div>
+    <div class="q"><div class="q-lbl">05 · How do I plan to improve for next week?</div><div class="q-ans">${get('wr-5')}</div></div>
+  </div>
+  <div class="ftr"><span>TRADINGWITHPURPOSE · WEEKLY REVIEW · ${get('wr-date')}</span><span>END OF WEEK REFLECTION</span></div>
   </body></html>`;
 }
 
 function printWeeklyReview() {
-  const w = window.open('', '_blank');
-  w.document.write(getWeeklyHTML());
-  w.document.close();
-  w.onload = () => w.print();
+  printViaIframe(getWeeklyHTML());
 }
 
 function downloadWeeklyReview() {
@@ -1107,40 +1339,104 @@ function getMonthlyHTML() {
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet"/>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:'IBM Plex Mono',monospace;background:white;color:#0a0a0a;padding:28px 32px;max-width:210mm;margin:0 auto;font-size:10px;}
-    h1{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:0.06em;margin-bottom:2px;}
-    .brand{font-size:8px;letter-spacing:0.2em;color:#1a3a5c;margin-bottom:4px;}
-    .date-line{font-size:9px;color:#888;margin-bottom:16px;letter-spacing:0.1em;}
-    .section{margin-bottom:16px;page-break-inside:avoid;}
-    .section-title{background:#1a3a5c;color:white;padding:7px 12px;font-size:8px;letter-spacing:0.16em;text-transform:uppercase;}
-    .question{border:1px solid #ccc;border-top:none;page-break-inside:avoid;}
-    .q-label{font-size:7px;color:#666;padding:7px 12px;background:#f5f3f0;letter-spacing:0.08em;border-bottom:1px solid #ddd;text-transform:uppercase;}
-    .q-answer{min-height:140px;background:white;padding:10px 12px;font-size:10px;line-height:2;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace;}
-    .footer{margin-top:16px;padding-top:10px;border-top:1.5px solid #0a0a0a;display:flex;justify-content:space-between;font-size:7px;color:#888;letter-spacing:0.1em;}
-    @media print{
-      body{padding:15mm 18mm;font-size:10px;}
-      .section{page-break-inside:avoid;}
-      .q-answer{min-height:150px;line-height:2.2;}
-    }
+    @page{size:A4;margin:10mm 12mm;}
+    body{font-family:'IBM Plex Mono',monospace;background:white;color:#0a0a0a;font-size:9px;}
+    .page{width:186mm;height:277mm;display:flex;flex-direction:column;overflow:hidden;}
+    .page-break{page-break-after:always;}
+    .hdr{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1.5px solid #0a0a0a;padding-bottom:5px;margin-bottom:7px;flex-shrink:0;}
+    .hdr-left .brand{font-size:7px;letter-spacing:0.18em;color:#1a3a5c;margin-bottom:1px;}
+    .hdr-left .title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.06em;line-height:1;}
+    .hdr-right{font-size:7px;color:#888;letter-spacing:0.1em;text-align:right;}
+    .secs{display:flex;flex-direction:column;flex:1;gap:4px;}
+    .sec{border:1px solid #ccc;display:flex;flex-direction:column;flex:1;}
+    .sec-title{background:#1a3a5c;color:white;padding:4px 10px;font-size:7px;letter-spacing:0.16em;text-transform:uppercase;flex-shrink:0;}
+    .qs{display:flex;flex-direction:column;flex:1;}
+    .q{display:flex;flex-direction:column;flex:1;border-top:1px solid #e0ddd8;}
+    .q:first-child{border-top:none;}
+    .q-lbl{font-size:6.5px;color:#777;padding:3px 10px;background:#f8f7f5;letter-spacing:0.08em;text-transform:uppercase;border-bottom:1px solid #eee;flex-shrink:0;}
+    .q-ans{flex:1;padding:4px 10px;font-size:9px;line-height:1.9;color:#333;white-space:pre-wrap;}
+    .ftr{flex-shrink:0;margin-top:5px;padding-top:4px;border-top:1px solid #ccc;display:flex;justify-content:space-between;font-size:6.5px;color:#aaa;letter-spacing:0.1em;}
+    @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}.page{height:277mm;}.page-break{page-break-after:always;}}
   </style></head><body>
-  <div class="brand">TRADINGWITHPURPOSE</div>
-  <h1>MONTHLY PERFORMANCE REVIEW</h1>
-  <div class="date-line">${get('mr-date')}</div>
-  ${sections.map(([title,qs]) => `
-    <div class="section">
-      <div class="section-title">${title}</div>
-      ${qs.map(([num,q,id]) => `<div class="question"><div class="q-label">${num} · ${q}</div><div class="q-answer">${get(id)}</div></div>`).join('')}
+
+  <!-- PAGE 1: Sections 1 & 2 — Process/Plan + Emotions -->
+  <div class="page page-break">
+    <div class="hdr">
+      <div class="hdr-left"><div class="brand">TRADINGWITHPURPOSE</div><div class="title">MONTHLY PERFORMANCE REVIEW</div></div>
+      <div class="hdr-right">Page 1 of 3 · ${get('mr-date')}</div>
     </div>
-  `).join('')}
-  <div class="footer"><span>TRADINGWITHPURPOSE · MONTHLY REVIEW · ${get('mr-date')}</span><span>END OF MONTH DEEP DIVE</span></div>
+    <div class="secs">
+      <div class="sec">
+        <div class="sec-title">1 · Process and Plan</div>
+        <div class="qs">
+          <div class="q"><div class="q-lbl">1A · When did trading feel natural, calm, and fully in sync with my plan — and what conditions led to that?</div><div class="q-ans">${get('mr-1a')}</div></div>
+          <div class="q"><div class="q-lbl">1B · Where did I cut corners, skip steps or make impulsive decisions — and why?</div><div class="q-ans">${get('mr-1b')}</div></div>
+          <div class="q"><div class="q-lbl">1C · Which parts of my plan felt effortless to follow, and which felt forced or unrealistic?</div><div class="q-ans">${get('mr-1c')}</div></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-title">2 · Emotions</div>
+        <div class="qs">
+          <div class="q"><div class="q-lbl">2A · Which emotions showed up most often while trading — and what triggered them?</div><div class="q-ans">${get('mr-2a')}</div></div>
+          <div class="q"><div class="q-lbl">2B · Did I notice emotions building before I acted on them, or only after the trade?</div><div class="q-ans">${get('mr-2b')}</div></div>
+          <div class="q"><div class="q-lbl">2C · When I stayed calm and disciplined, what allowed me to do so?</div><div class="q-ans">${get('mr-2c')}</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="ftr"><span>TRADINGWITHPURPOSE · MONTHLY REVIEW</span><span>END OF MONTH DEEP DIVE</span></div>
+  </div>
+
+  <!-- PAGE 2: Sections 3 & 4 — Discipline + Habits -->
+  <div class="page page-break">
+    <div class="hdr">
+      <div class="hdr-left"><div class="brand">TRADINGWITHPURPOSE</div><div class="title">MONTHLY PERFORMANCE REVIEW</div></div>
+      <div class="hdr-right">Page 2 of 3 · ${get('mr-date')}</div>
+    </div>
+    <div class="secs">
+      <div class="sec">
+        <div class="sec-title">3 · Discipline and Self Awareness</div>
+        <div class="qs">
+          <div class="q"><div class="q-lbl">3A · How did I handle stress compared to last month?</div><div class="q-ans">${get('mr-3a')}</div></div>
+          <div class="q"><div class="q-lbl">3B · Did I take breaks, step away, or pause when I needed to — or did I push through and regret it?</div><div class="q-ans">${get('mr-3b')}</div></div>
+          <div class="q"><div class="q-lbl">3C · Are my routines helping me stay consistent, or do they need to change?</div><div class="q-ans">${get('mr-3c')}</div></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-title">4 · Habits / Patterns</div>
+        <div class="qs">
+          <div class="q"><div class="q-lbl">4A · Do I tend to break my rules under specific conditions — time of day, after a win, after a loss?</div><div class="q-ans">${get('mr-4a')}</div></div>
+          <div class="q"><div class="q-lbl">4B · Are the same mistakes appearing again, or am I improving in those areas?</div><div class="q-ans">${get('mr-4b')}</div></div>
+          <div class="q"><div class="q-lbl">4C · Which habits are becoming automatic — good or bad?</div><div class="q-ans">${get('mr-4c')}</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="ftr"><span>TRADINGWITHPURPOSE · MONTHLY REVIEW</span><span>END OF MONTH DEEP DIVE</span></div>
+  </div>
+
+  <!-- PAGE 3: Section 5 — Improvements, full page -->
+  <div class="page">
+    <div class="hdr">
+      <div class="hdr-left"><div class="brand">TRADINGWITHPURPOSE</div><div class="title">MONTHLY PERFORMANCE REVIEW</div></div>
+      <div class="hdr-right">Page 3 of 3 · ${get('mr-date')}</div>
+    </div>
+    <div class="secs">
+      <div class="sec">
+        <div class="sec-title">5 · Improvements</div>
+        <div class="qs">
+          <div class="q"><div class="q-lbl">5A · Which one rule or behaviour will I commit to mastering fully — no exceptions?</div><div class="q-ans">${get('mr-5a')}</div></div>
+          <div class="q"><div class="q-lbl">5B · How will I recognise emotional trading earlier next month?</div><div class="q-ans">${get('mr-5b')}</div></div>
+          <div class="q"><div class="q-lbl">5C · How will I define a "successful month" without using profit or loss as the measure?</div><div class="q-ans">${get('mr-5c')}</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="ftr"><span>TRADINGWITHPURPOSE · MONTHLY REVIEW · ${get('mr-date')}</span><span>END OF MONTH DEEP DIVE</span></div>
+  </div>
+
   </body></html>`;
 }
 
 function printMonthlyReview() {
-  const w = window.open('', '_blank');
-  w.document.write(getMonthlyHTML());
-  w.document.close();
-  w.onload = () => w.print();
+  printViaIframe(getMonthlyHTML());
 }
 
 function downloadMonthlyReview() {
@@ -1513,14 +1809,12 @@ function newTrade() {
   const t = {};
   TRADE_FIELDS.forEach(f => t[f] = '');
   t['ts-date'] = new Date().toISOString().split('T')[0];
-  t['ts-direction'] = 'SHORT';
   trades.push(t);
   currentTradeIdx = trades.length - 1;
   saveTrades();
-  // Clear all fields for new trade
   TRADE_FIELDS.forEach(f => {
     const el = document.getElementById(f);
-    if (el) el.value = f === 'ts-direction' ? 'SHORT' : f === 'ts-date' ? t['ts-date'] : '';
+    if (el) el.value = f === 'ts-date' ? t['ts-date'] : '';
   });
 }
 
