@@ -1124,6 +1124,8 @@ function downloadPMReview() {
   URL.revokeObjectURL(url);
   showStatus('Downloaded — open the file and use Ctrl+P to save as PDF.', 'green');
 }
+
+function onPMDateChange() {
   const date = document.getElementById('pm-date').value;
   if (pmReviews[date]) {
     loadPMReview(date);
